@@ -26,15 +26,17 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 else ()
 endif ()
 
-# FLAGS ####################################################
+# SETTING ####################################################
 
+set(al_path ${CMAKE_CURRENT_SOURCE_DIR}/../al_lib)
+set(APP_OUTPUT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 # set(CMAKE_BUILD_TYPE Debug)
 if (WINDOWS)
-  set(APP_OUTPUT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/bin)
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${APP_OUTPUT_PATH})
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${APP_OUTPUT_PATH})
   set(CMAKE_CXX_FLAGS "/W2")
 else ()
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${APP_OUTPUT_PATH})
   set(CMAKE_CXX_FLAGS "-std=c++14 -Wall -Wno-unused")
 endif (WINDOWS)
 
@@ -42,7 +44,6 @@ endif (WINDOWS)
 
 find_package(OpenGL REQUIRED)
 if (WINDOWS)
-  set(al_path ${CMAKE_CURRENT_SOURCE_DIR}/../al_lib)
   set(lib_path ${al_path}/libs)
   set(GLFW_INCLUDE_DIRS ${lib_path}/glfw/include)
   set(GLFW_LIBRARIES ${lib_path}/glfw/glfw3dll.lib)
@@ -78,7 +79,7 @@ target_link_libraries(${app_name} ${APR_LIBRARIES})
 if (WINDOWS)
   target_link_libraries(${app_name} debug ${al_path}/al_debug.lib optimized  ${al_path}/al.lib)
 else()
-  target_link_libraries(${app_name} ${CMAKE_CURRENT_SOURCE_DIR}/../libal.a)
+  target_link_libraries(${app_name} ${al_path}/libal.a)
 endif (WINDOWS)
 
 # copy dlls

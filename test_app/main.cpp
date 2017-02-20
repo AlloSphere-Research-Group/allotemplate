@@ -6,7 +6,7 @@
 using namespace al;
 using namespace std;
 
-class MyApp : public WindowApp, public osc::PacketHandler {
+class MyApp : public App {
 public:
   ShaderProgram shader;
   VAOMesh mesh;
@@ -58,7 +58,7 @@ public:
     mesh.color(0.0, 1.0, 0.0);
     mesh.vertex(0.5, 0.5, 0);
     mesh.color(0.0, 1.0, 1.0);
-    mesh.update();
+    mesh.update(); // send to gpu buffers
 
     g.setClearColor(0, 1, 1);
 
@@ -81,21 +81,16 @@ public:
   }
 
   void onMessage(osc::Message& m) {
+    if (m.addressPattern() == "/test") {
+        // Extract the data out of the packet
+        std::string str;
+        m >> str;
 
-      if (m.addressPattern() == "/test") {
-
-          // Extract the data out of the packet
-          std::string str;
-          m >> str;
-
-          // Print out the extracted packet data
-          std::cout << "SERVER: recv " << str << endl;;
-      }
+        // Print out the extracted packet data
+        std::cout << "SERVER: recv " << str << endl;;
+    }
   }
-};
 
-class MyAudioApp : public AudioApp {
-public:
   void onSound(AudioIOData& io) {
     static double phase {0};
     // Set the base frequency to 55 Hz
@@ -117,16 +112,11 @@ public:
   }
 };
 
-int main(int argc, char* argv[]) {
-  MyAudioApp audioApp;
-  audioApp.initAudio();
-  audioApp.begin();
-
+int main() {
   MyApp app;
-  app.dimensions(1000, 500);
-  app.title("mesh test");
-  app.start();
-
-  audioApp.end();
+  app.initAudio();
+  app.dimensions(400, 300);
+  app.title("app test");
+  app.start(); // blocks
   return 0;
 }
