@@ -12,6 +12,10 @@ public:
   VAOMesh mesh;
   Graphics g;
   osc::Recv server { 16447, "", 0.05 };
+
+  void onInit() {
+    cout << "after glfw init, before window creation" << endl;
+  }
   
   void onCreate() {
     string const vert_source = R"(
@@ -115,8 +119,11 @@ public:
 int main() {
   MyApp app;
   app.initAudio();
-  app.dimensions(400, 300);
+  app.dimensions(640, 480);
   app.title("app test");
+  app.fps(60);
+  app.decorated(true);
+  app.displayMode(Window::DEFAULT_BUF);
   app.start(); // blocks
   return 0;
 }
