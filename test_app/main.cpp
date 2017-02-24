@@ -91,7 +91,7 @@ public:
         m >> str;
 
         // Print out the extracted packet data
-        std::cout << "SERVER: recv " << str << endl;;
+        std::cout << "SERVER: recv " << str << endl;
     }
   }
 
@@ -113,6 +113,10 @@ public:
       io.out(0) = out1*0.2;
       io.out(1) = out2*0.3;
     }
+  }
+
+  void onExit() {
+    cout << "onExit" << endl;
   }
 };
 
