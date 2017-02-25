@@ -49,6 +49,7 @@ public:
 
     shader.compile(vert_source, frag_source);
 
+    mesh.reset();
     mesh.primitive(TRIANGLES);
     mesh.vertex(-0.5, -0.5, 0);
     mesh.color(1.0, 0.0, 0.0);
@@ -70,17 +71,39 @@ public:
     server.start();
   }
 
+  void onAnimate(double dt) {
+
+  }
+
   void onDraw() {
     g.viewport(0, 0, fbWidth(), fbHeight());
     g.clear();
+
     float w = width();
     float h = height();
+
+    // simple projection matrix for now
+    auto proj = Matrix4f::scaling(h / w, 1.0f, 1.0f);
+
     Matrix4f mat = Matrix4f::rotate(sec(), 0, 0, 1);
     mat = Matrix4f::scaling(h / w, 1.0f, 1.0f) * mat;
     
     shader.begin();
-    shader.uniform("m", mat);
+
+    g.pushMatrix();
+    g.rotate(sec(), 0, 0, 1);
+    g.translate(-0.5, 0, 0);
+    shader.uniform("m", proj * g.modelMatrix());
     mesh.draw();
+    g.popMatrix();
+
+    g.pushMatrix();
+    g.rotate(2 * sec(), 0, 0, 1);
+    g.translate(0.5, 0, 0);
+    shader.uniform("m", proj * g.modelMatrix());
+    mesh.draw();
+    g.popMatrix();
+
     shader.end();
   }
 
@@ -111,7 +134,7 @@ public:
 
       // Send scaled waveforms to output...
       io.out(0) = out1*0.2;
-      io.out(1) = out2*0.3;
+      io.out(1) = out2*0.4;
     }
   }
 

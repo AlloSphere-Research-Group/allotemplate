@@ -44,7 +44,7 @@ endif (WINDOWS)
 
 find_package(OpenGL REQUIRED)
 if (WINDOWS)
-  set(lib_path ${al_path}/libs)
+  set(lib_path ${al_path}/dependencies)
   set(GLFW_INCLUDE_DIRS ${lib_path}/glfw/include)
   set(GLFW_LIBRARIES ${lib_path}/glfw/glfw3dll.lib)
   set(GLEW_INCLUDE_DIRS ${lib_path}/glew/include)
