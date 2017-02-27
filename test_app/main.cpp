@@ -23,7 +23,7 @@ public:
     // can do things such as setting window dimenstion from monitor data (with glfw functions)
     GLFWmonitor* primary = glfwGetPrimaryMonitor();
     const GLFWvidmode* mode = glfwGetVideoMode(primary);
-    dimensions(mode->width / 4, mode->height / 2);
+    dimensions(mode->width * 1.2, mode->height / 2);
   }
   
   void onCreate() {
@@ -112,6 +112,7 @@ _texcoord = texcoord;
     server.handler(*this);
     server.start();
 
+    // set viewpoint details
     vp.transform()
       .pos(Vec3f(0, 0, 10))
       .quat(Quatf::getBillboardRotation(
@@ -126,6 +127,7 @@ _texcoord = texcoord;
   }
 
   void onAnimate(double dt) {
+    // move viewpoint (camera) left and right
     vp.transform().pos(Vec3f(sin(sec()), 0, 10));
   }
 
@@ -141,7 +143,7 @@ _texcoord = texcoord;
     auto view = vp.viewMatrix();
     // Matrix4f mat = Matrix4f::rotate(sec(), 0, 0, 1);
     // mat = Matrix4f::scaling(h / w, 1.0f, 1.0f) * mat;
-    
+
     shader.begin();
     shader.uniform("t", sin(sec()));
 
@@ -210,6 +212,11 @@ _texcoord = texcoord;
       io.out(0) = out1*0.2;
       io.out(1) = out2*0.4;
     }
+  }
+
+  void onResize(int w, int h) {
+    cout << "resize: " << w << " X " << h << endl;
+    vp.viewport().set(0, 0, fbWidth(), fbHeight());
   }
 
   void onExit() {
