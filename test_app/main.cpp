@@ -16,13 +16,14 @@ public:
   FBO fbo;
   Texture color_attachment;
   RBO depth_attachment;
+  Viewpoint vp;
 
   void onInit() {
     cout << "after glfw init, before window creation" << endl;
     // can do things such as setting window dimenstion from monitor data (with glfw functions)
     GLFWmonitor* primary = glfwGetPrimaryMonitor();
     const GLFWvidmode* mode = glfwGetVideoMode(primary);
-    dimensions(mode->width / 2, mode->height / 4);
+    dimensions(mode->width / 4, mode->height / 2);
   }
   
   void onCreate() {
@@ -106,27 +107,40 @@ _texcoord = texcoord;
     fbo.end();
 
     g.setClearColor(0, 1, 1);
-    g.viewport(0, 0, fbWidth(), fbHeight()); // glViewport works on framebuffer size
+    // g.viewport(0, 0, fbWidth(), fbHeight()); // glViewport works on framebuffer size
 
     server.handler(*this);
     server.start();
+
+    vp.transform()
+      .pos(Vec3f(0, 0, 10))
+      .quat(Quatf::getBillboardRotation(
+        Vec3f(0, 0, -1), // forward
+        Vec3f(0, 1, 0) // up
+      )
+    );
+    vp.viewport().set(0, 0, fbWidth(), fbHeight());
+    vp.lens().fovy(30).near(0.1).far(100);
+
+    g.viewport(vp.viewport());
   }
 
   void onAnimate(double dt) {
-
+    vp.transform().pos(Vec3f(sin(sec()), 0, 10));
   }
 
   void onDraw() {
     g.clear();
 
-    float w = width();
-    float h = height();
+    // float w = width();
+    // float h = height();
 
     // simple projection matrix for now
-    auto proj = Matrix4f::scaling(h / w, 1.0f, 1.0f);
-
-    Matrix4f mat = Matrix4f::rotate(sec(), 0, 0, 1);
-    mat = Matrix4f::scaling(h / w, 1.0f, 1.0f) * mat;
+    // auto proj = Matrix4f::scaling(h / w, 1.0f, 1.0f);
+    auto proj = vp.projMatrix();
+    auto view = vp.viewMatrix();
+    // Matrix4f mat = Matrix4f::rotate(sec(), 0, 0, 1);
+    // mat = Matrix4f::scaling(h / w, 1.0f, 1.0f) * mat;
     
     shader.begin();
     shader.uniform("t", sin(sec()));
@@ -136,7 +150,7 @@ _texcoord = texcoord;
     g.pushMatrix();
     g.rotate(sec(), 0, 0, 1);
     g.translate(-0.5, 0, 0);
-    shader.uniform("m", proj * g.modelMatrix());
+    shader.uniform("m", proj * view * g.modelMatrix());
     mesh.draw();
     g.popMatrix();
 
@@ -147,7 +161,7 @@ _texcoord = texcoord;
     g.pushMatrix();
     g.rotate(2 * sec(), 0, 0, 1);
     g.translate(0.5, 0, 0);
-    shader.uniform("m", proj * g.modelMatrix());
+    shader.uniform("m", proj * view * g.modelMatrix());
     mesh.draw();
     g.popMatrix();
 
