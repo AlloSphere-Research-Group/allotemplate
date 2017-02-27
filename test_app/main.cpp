@@ -12,9 +12,17 @@ public:
   VAOMesh mesh;
   Graphics g;
   osc::Recv server { 16447, "", 0.05 };
+  Texture texture;
+  FBO fbo;
+  Texture color_attachment;
+  RBO depth_attachment;
 
   void onInit() {
     cout << "after glfw init, before window creation" << endl;
+    // can do things such as setting window dimenstion from monitor data (with glfw functions)
+    GLFWmonitor* primary = glfwGetPrimaryMonitor();
+    const GLFWvidmode* mode = glfwGetVideoMode(primary);
+    dimensions(mode->width / 2, mode->height / 4);
   }
   
   void onCreate() {
@@ -28,44 +36,77 @@ public:
       layout (location = 2) in vec2 texcoord;
 
       out vec4 _color;
+        out vec2 _texcoord;
 
       void main() {
         gl_Position = m * position;
         _color = color;
+_texcoord = texcoord;
       }
     )";
 
     string const frag_source = R"(
       #version 330
 
+      uniform sampler2D tex0;
+    uniform float t;
       in vec4 _color;
+        in vec2 _texcoord;
 
       out vec4 frag_color;
 
       void main() {
-        frag_color = _color;
+        vec4 texval = texture(tex0, _texcoord);
+        frag_color = mix(_color, texval, t);
       }
     )";
 
     shader.compile(vert_source, frag_source);
+    shader.listParams();
+    shader.begin();
+    shader.uniform("tex0", 0);
+    shader.uniform("t", 0.5);
+    shader.end();
 
-    mesh.reset();
-    mesh.primitive(TRIANGLES);
-    mesh.vertex(-0.5, -0.5, 0);
-    mesh.color(1.0, 0.0, 0.0);
-    mesh.vertex(0.5, -0.5, 0);
-    mesh.color(0.0, 1.0, 0.0);
-    mesh.vertex(-0.5, 0.5, 0);
-    mesh.color(0.0, 0.0, 1.0);
-    mesh.vertex(-0.5, 0.5, 0);
-    mesh.color(0.0, 0.0, 1.0);
-    mesh.vertex(0.5, -0.5, 0);
-    mesh.color(0.0, 1.0, 0.0);
-    mesh.vertex(0.5, 0.5, 0);
-    mesh.color(0.0, 1.0, 1.0);
-    mesh.update(); // send to gpu buffers
+    int w = 16;
+    int h = 16;
+    int internal = GL_RGBA8; // GL_RGBA16/32F/16F,
+                             // GL_DEPTH_COMPONENT32F/24/16, ...
+    int format = GL_RGBA; // GL_RGB, GL_DEPTH_COMPONENT, ...
+    int type = GL_FLOAT; // GL_UNSIGNED_BYTE (what data type will we give?)
+    texture.create2D(w, h, internal, format, type);
+
+    array<float, 16 * 16 * 4> arr;
+    for (int i = 0; i < 16; i++) {
+        for (int j = 0; j < 16; j++) {
+            int idx = i + 16 * j;
+            arr[4 * idx + 0] = i / 15.0f;
+            arr[4 * idx + 1] = j / 15.0f;
+            arr[4 * idx + 2] = 1.0f;
+            arr[4 * idx + 3] = 1.0f;
+        }
+    }
+    texture.bind();
+    texture.submit(arr.data()); // give raw pointer
+    texture.mipmap(true); // turn on only if needed
+    texture.update();
+    texture.unbind();
+
+    meshA();
+
+    color_attachment.create2D(128, 128);
+    depth_attachment.create(128, 128);
+    fbo.attachTexture2D(color_attachment);
+    //fbo.attachTexture2D(color_attachment, GL_COLOR_ATTACHMENT0); // same as above
+    fbo.attachRBO(depth_attachment);
+    printf("fbo status %s\n", fbo.statusString());
+
+    fbo.begin();
+    g.clear(0, 1, 0, 1); // later EasyFBO will have its own al::Graphics
+    fbo.end();
 
     g.setClearColor(0, 1, 1);
+    g.viewport(0, 0, fbWidth(), fbHeight()); // glViewport works on framebuffer size
 
     server.handler(*this);
     server.start();
@@ -76,7 +117,6 @@ public:
   }
 
   void onDraw() {
-    g.viewport(0, 0, fbWidth(), fbHeight());
     g.clear();
 
     float w = width();
@@ -89,6 +129,9 @@ public:
     mat = Matrix4f::scaling(h / w, 1.0f, 1.0f) * mat;
     
     shader.begin();
+    shader.uniform("t", sin(sec()));
+
+    texture.bind();
 
     g.pushMatrix();
     g.rotate(sec(), 0, 0, 1);
@@ -97,6 +140,10 @@ public:
     mesh.draw();
     g.popMatrix();
 
+    texture.unbind();
+
+    color_attachment.bind();
+
     g.pushMatrix();
     g.rotate(2 * sec(), 0, 0, 1);
     g.translate(0.5, 0, 0);
@@ -104,7 +151,20 @@ public:
     mesh.draw();
     g.popMatrix();
 
+    color_attachment.unbind();
+
     shader.end();
+  }
+
+  void onKeyDown(Keyboard const& k) {
+      if (k.key() == '1') {
+          meshA();
+          return;
+      }
+      if (k.key() == '2') {
+          meshB();
+          return;
+      }
   }
 
   void onMessage(osc::Message& m) {
@@ -140,6 +200,61 @@ public:
 
   void onExit() {
     cout << "onExit" << endl;
+  }
+
+  void meshA() {
+      mesh.reset();
+      mesh.primitive(TRIANGLES);
+      mesh.vertex(-0.5, -0.5, 0);
+      mesh.color(1.0, 0.0, 0.0);
+      mesh.texCoord(0.0, 0.0);
+
+      mesh.vertex(0.5, -0.5, 0);
+      mesh.color(0.0, 1.0, 0.0);
+      mesh.texCoord(1.0, 0.0);
+
+      mesh.vertex(-0.5, 0.5, 0);
+      mesh.color(0.0, 0.0, 1.0);
+      mesh.texCoord(0.0, 1.0);
+
+      mesh.vertex(-0.5, 0.5, 0);
+      mesh.color(0.0, 0.0, 1.0);
+      mesh.texCoord(0.0, 1.0);
+
+      mesh.vertex(0.5, -0.5, 0);
+      mesh.color(0.0, 1.0, 0.0);
+      mesh.texCoord(1.0, 0.0);
+
+      mesh.vertex(0.5, 0.5, 0);
+      mesh.color(0.0, 1.0, 1.0);
+      mesh.texCoord(1.0, 1.0);
+      mesh.update(); // send to gpu buffers
+  }
+
+  void meshB() {
+      mesh.reset();
+      mesh.primitive(TRIANGLE_STRIP);
+      mesh.vertex(-0.5, -0.5, 0);
+      mesh.color(0.0, 0.0, 0.0);
+      mesh.texCoord(0.0, 0.0);
+
+      mesh.vertex(0.5, -0.5, 0);
+      mesh.color(1.0, 0.0, 0.0);
+      mesh.texCoord(1.0, 0.0);
+
+      mesh.vertex(0.5, 0.5, 0);
+      mesh.color(1.0, 1.0, 0.0);
+      mesh.texCoord(1.0, 1.0);
+
+      mesh.vertex(-0.5, 0.5, 0);
+      mesh.color(0.0, 1.0, 0.0);
+      mesh.texCoord(0.0, 1.0);
+
+      mesh.index(0);
+      mesh.index(1);
+      mesh.index(3);
+      mesh.index(2);
+      mesh.update();
   }
 };
 
