@@ -16,7 +16,6 @@ public:
   FBO fbo;
   Texture color_attachment;
   RBO depth_attachment;
-  Viewpoint vp;
 
   void onInit() {
     cout << "after glfw init, before window creation" << endl;
@@ -27,6 +26,8 @@ public:
   }
   
   void onCreate() {
+    
+
     string const vert_source = R"(
       #version 330
 
@@ -103,7 +104,7 @@ _texcoord = texcoord;
     printf("fbo status %s\n", fbo.statusString());
 
     fbo.begin();
-    g.clear(0, 1, 0, 1); // later EasyFBO will have its own al::Graphics
+    g.clear(0, 1, 0, 1); // later EasyFBO will have its own al::Graphics?
     fbo.end();
 
     g.setClearColor(0, 1, 1);
@@ -111,15 +112,9 @@ _texcoord = texcoord;
 
     server.handler(*this);
     server.start();
-
-    // set viewpoint details
-    vp.transform()
-      .pos(Vec3f(0, 0, 10))
-      .quat(Quatf::getBillboardRotation(
-        Vec3f(0, 0, -1), // forward
-        Vec3f(0, 1, 0) // up
-      )
-    );
+    
+    // need shorcuts for these
+    nav.pos(Vec3d(0, 0, 10)).faceToward(Vec3d(0, 0, 0), Vec3d(0, 1, 0));
     vp.viewport().set(0, 0, fbWidth(), fbHeight());
     vp.lens().fovy(30).near(0.1).far(100);
 
@@ -127,8 +122,7 @@ _texcoord = texcoord;
   }
 
   void onAnimate(double dt) {
-    // move viewpoint (camera) left and right
-    vp.transform().pos(Vec3f(sin(sec()), 0, 10));
+    
   }
 
   void onDraw() {
