@@ -3,6 +3,8 @@
 #include <string>
 #include <array>
 
+#include <unistd.h> // getcwd
+
 using namespace al;
 using namespace std;
 
@@ -22,12 +24,10 @@ public:
     // can do things such as setting window dimenstion from monitor data (with glfw functions)
     GLFWmonitor* primary = glfwGetPrimaryMonitor();
     const GLFWvidmode* mode = glfwGetVideoMode(primary);
-    dimensions(mode->width * 1.2, mode->height / 2);
+    dimensions(mode->width / 3, mode->height / 2);
   }
   
   void onCreate() {
-    
-
     string const vert_source = R"(
       #version 330
 
@@ -274,7 +274,14 @@ _texcoord = texcoord;
 };
 
 int main() {
+  {
+    char cwd[1024];
+    if (getcwd(cwd, sizeof(cwd)) != NULL)
+      printf("Current working dir: %s\n", cwd);
+  }
+
   MyApp app;
+  // app.renderMode(OFFLINE, GRAPHICS_CLOCK);
   app.initAudio();
   app.dimensions(640, 480);
   app.title("app test");
