@@ -27,7 +27,7 @@ cd .. # back to al_proj/build
 # then build the app ###########################################################
 echo "building ${APP_NAME}"
 APP_NAME="$1" # first argument (assumming we consumed all the options above)
-# discard / in the end of the input directory (if it has)
+# discard '/'' in the end of the input directory (if it has)
 LASTCHAR=${APP_NAME:(-1)}
 if [ ${LASTCHAR} == "/" ]; then
     # ${string%substring}
@@ -44,8 +44,8 @@ APP_BUILD_RESULT=$?
 if [ ${LIB_BUILD_RESULT} == 0 ]; then
 	if [ ${APP_BUILD_RESULT} == 0 ]; then
 		cd ../.. # back to al_proj
-		echo "running ${APP_NAME}"
 		cd ${APP_NAME}/bin # go to where excutable is so we have cwd there
+		echo "running ${APP_NAME}"
 		./"${APP_NAME}${POSTFIX}"
 	fi
 fi
