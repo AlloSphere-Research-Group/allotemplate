@@ -3,7 +3,9 @@
 #include <string>
 #include <array>
 
+#ifndef AL_WINDOWS
 #include <unistd.h> // getcwd
+#endif
 
 using namespace al;
 using namespace std;
@@ -274,11 +276,13 @@ _texcoord = texcoord;
 };
 
 int main() {
+  #ifndef AL_WINDOWS  
   {
     char cwd[1024];
     if (getcwd(cwd, sizeof(cwd)) != NULL)
       printf("Current working dir: %s\n", cwd);
   }
+  #endif
 
   MyApp app;
   // app.renderMode(OFFLINE, GRAPHICS_CLOCK);

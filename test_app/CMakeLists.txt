@@ -23,7 +23,7 @@ else ()
   set(CMAKE_CXX_FLAGS "-std=c++14 -Wall -Wno-unused")
 endif (WINDOWS)
 
-include(app_files.cmake) # get app file list user specified
+include(app_config.cmake) # get app file list user specified
 add_executable(${app_name} ${app_files_list})
 include(${al_path}/cmake_modules/app_link_include_and_properties.cmake)
 include(${al_path}/cmake_modules/app_postbuild_events.cmake)

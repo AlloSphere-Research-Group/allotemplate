@@ -11,7 +11,7 @@ while getopts ":d" opt; do
     ;;
   esac
 done
-echo "${BUILD_TYPE}"
+echo "BUILD TYPE: ${BUILD_TYPE}"
 
 # first build al_lib ###########################################################
 echo "building al_lib"
