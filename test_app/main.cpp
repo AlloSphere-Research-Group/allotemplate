@@ -91,10 +91,6 @@ _texcoord = texcoord;
         }
     }
 
-    #ifdef glGenerateMipmap
-    cout << "is defined!" << endl;
-    #endif
-
     texture.bind();
     texture.submit(arr.data()); // give raw pointer
     texture.mipmap(false); // turn on only if needed
