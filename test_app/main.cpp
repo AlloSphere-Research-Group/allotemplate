@@ -90,13 +90,18 @@ _texcoord = texcoord;
             arr[4 * idx + 3] = 1.0f;
         }
     }
+
+    #ifdef glGenerateMipmap
+    cout << "is defined!" << endl;
+    #endif
+
     texture.bind();
     texture.submit(arr.data()); // give raw pointer
-    texture.mipmap(true); // turn on only if needed
+    texture.mipmap(false); // turn on only if needed
     texture.update();
     texture.unbind();
-
     meshA();
+
 
     color_attachment.create2D(128, 128);
     depth_attachment.create(128, 128);

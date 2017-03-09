@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # check if we want debug build
 BUILD_TYPE=Release
