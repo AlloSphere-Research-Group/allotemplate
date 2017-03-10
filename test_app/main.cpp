@@ -111,17 +111,16 @@ _texcoord = texcoord;
     fbo.end();
 
     g.setClearColor(0, 1, 1);
-    // g.viewport(0, 0, fbWidth(), fbHeight()); // glViewport works on framebuffer size
 
     server.handler(*this);
     server.start();
     
-    // need shorcuts for these
-    nav.pos(Vec3d(0, 0, 10)).faceToward(Vec3d(0, 0, 0), Vec3d(0, 1, 0));
-    vp.viewport().set(0, 0, fbWidth(), fbHeight());
-    vp.lens().fovy(30).near(0.1).far(100);
+    nav().pos(Vec3d(0, 0, 10)).faceToward(Vec3d(0, 0, 0), Vec3d(0, 1, 0));
+    viewport().set(0, 0, fbWidth(), fbHeight());
+    lens().fovy(30).near(0.1).far(100);
 
-    g.viewport(vp.viewport());
+    // glViewport works on framebuffer size
+    g.viewport(viewport());
   }
 
   void onAnimate(double dt) {
@@ -136,8 +135,8 @@ _texcoord = texcoord;
 
     // simple projection matrix for now
     // auto proj = Matrix4f::scaling(h / w, 1.0f, 1.0f);
-    auto proj = vp.projMatrix();
-    auto view = vp.viewMatrix();
+    auto proj = viewpoint().projMatrix();
+    auto view = viewpoint().viewMatrix();
     // Matrix4f mat = Matrix4f::rotate(sec(), 0, 0, 1);
     // mat = Matrix4f::scaling(h / w, 1.0f, 1.0f) * mat;
 
@@ -147,8 +146,8 @@ _texcoord = texcoord;
     texture.bind();
 
     g.pushMatrix();
-    g.rotate(sec(), 0, 0, 1);
     g.translate(-0.5, 0, 0);
+    g.rotate(sec(), 0, 0, 1);
     shader.uniform("m", proj * view * g.modelMatrix());
     mesh.draw();
     g.popMatrix();
@@ -158,8 +157,8 @@ _texcoord = texcoord;
     color_attachment.bind();
 
     g.pushMatrix();
-    g.rotate(2 * sec(), 0, 0, 1);
     g.translate(0.5, 0, 0);
+    g.rotate(2 * sec(), 0, 0, 1);
     shader.uniform("m", proj * view * g.modelMatrix());
     mesh.draw();
     g.popMatrix();
@@ -213,7 +212,7 @@ _texcoord = texcoord;
 
   void onResize(int w, int h) {
     cout << "resize: " << w << " X " << h << endl;
-    vp.viewport().set(0, 0, fbWidth(), fbHeight());
+    viewport().set(0, 0, fbWidth(), fbHeight());
   }
 
   void onExit() {
