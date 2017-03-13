@@ -23,7 +23,6 @@ public:
 
   void onInit() {
     cout << "after glfw init, before window creation" << endl;
-    // can do things such as setting window dimenstion from monitor data (with glfw functions)
     GLFWmonitor* primary = glfwGetPrimaryMonitor();
     const GLFWvidmode* mode = glfwGetVideoMode(primary);
     dimensions(mode->width / 3, mode->height / 2);
@@ -96,8 +95,6 @@ _texcoord = texcoord;
     texture.mipmap(false); // turn on only if needed
     texture.update();
     texture.unbind();
-    meshA();
-
 
     color_attachment.create2D(128, 128);
     depth_attachment.create(128, 128);
@@ -107,76 +104,23 @@ _texcoord = texcoord;
     printf("fbo status %s\n", fbo.statusString());
 
     fbo.begin();
-    g.clear(0, 1, 0, 1); // later EasyFBO will have its own al::Graphics?
+    g.clear(0, 1, 0, 1);
     fbo.end();
-
-    g.setClearColor(0, 1, 1);
 
     server.handler(*this);
     server.start();
     
-    nav().pos(Vec3d(0, 0, 10)).faceToward(Vec3d(0, 0, 0), Vec3d(0, 1, 0));
-    viewport().set(0, 0, fbWidth(), fbHeight());
-    lens().fovy(30).near(0.1).far(100);
-
-    // glViewport works on framebuffer size
-    g.viewport(viewport());
   }
 
   void onAnimate(double dt) {
-    
+
   }
 
   void onDraw() {
     g.clear();
-
-    // float w = width();
-    // float h = height();
-
-    // simple projection matrix for now
-    // auto proj = Matrix4f::scaling(h / w, 1.0f, 1.0f);
-    auto proj = viewpoint().projMatrix();
-    auto view = viewpoint().viewMatrix();
-    // Matrix4f mat = Matrix4f::rotate(sec(), 0, 0, 1);
-    // mat = Matrix4f::scaling(h / w, 1.0f, 1.0f) * mat;
-
-    shader.begin();
-    shader.uniform("t", sin(sec()));
-
-    texture.bind();
-
-    g.pushMatrix();
-    g.translate(-0.5, 0, 0);
-    g.rotate(sec(), 0, 0, 1);
-    shader.uniform("m", proj * view * g.modelMatrix());
-    mesh.draw();
-    g.popMatrix();
-
-    texture.unbind();
-
-    color_attachment.bind();
-
-    g.pushMatrix();
-    g.translate(0.5, 0, 0);
-    g.rotate(2 * sec(), 0, 0, 1);
-    shader.uniform("m", proj * view * g.modelMatrix());
-    mesh.draw();
-    g.popMatrix();
-
-    color_attachment.unbind();
-
-    shader.end();
   }
 
   void onKeyDown(Keyboard const& k) {
-      if (k.key() == '1') {
-          meshA();
-          return;
-      }
-      if (k.key() == '2') {
-          meshB();
-          return;
-      }
   }
 
   void onMessage(osc::Message& m) {
@@ -184,7 +128,6 @@ _texcoord = texcoord;
         // Extract the data out of the packet
         std::string str;
         m >> str;
-
         // Print out the extracted packet data
         std::cout << "SERVER: recv " << str << endl;
     }
@@ -201,97 +144,31 @@ _texcoord = texcoord;
       if(phase > 1) phase -= 1;
 
       // Generate two sine waves at the 5th and 4th harmonics
-      float out1 = cos(5*phase * 2*M_PI);
-      float out2 = sin(4*phase * 2*M_PI);
+      float out = 0.3 * cos(5*phase * 2*M_PI);
 
       // Send scaled waveforms to output...
-      io.out(0) = out1*0.2;
-      io.out(1) = out2*0.4;
+      io.out(0) = out;
+      io.out(1) = out;
     }
   }
 
   void onResize(int w, int h) {
-    cout << "resize: " << w << " X " << h << endl;
-    viewport().set(0, 0, fbWidth(), fbHeight());
   }
 
   void onExit() {
     cout << "onExit" << endl;
   }
 
-  void meshA() {
-      mesh.reset();
-      mesh.primitive(TRIANGLES);
-      mesh.vertex(-0.5, -0.5, 0);
-      mesh.color(1.0, 0.0, 0.0);
-      mesh.texCoord(0.0, 0.0);
-
-      mesh.vertex(0.5, -0.5, 0);
-      mesh.color(0.0, 1.0, 0.0);
-      mesh.texCoord(1.0, 0.0);
-
-      mesh.vertex(-0.5, 0.5, 0);
-      mesh.color(0.0, 0.0, 1.0);
-      mesh.texCoord(0.0, 1.0);
-
-      mesh.vertex(-0.5, 0.5, 0);
-      mesh.color(0.0, 0.0, 1.0);
-      mesh.texCoord(0.0, 1.0);
-
-      mesh.vertex(0.5, -0.5, 0);
-      mesh.color(0.0, 1.0, 0.0);
-      mesh.texCoord(1.0, 0.0);
-
-      mesh.vertex(0.5, 0.5, 0);
-      mesh.color(0.0, 1.0, 1.0);
-      mesh.texCoord(1.0, 1.0);
-      mesh.update(); // send to gpu buffers
-  }
-
-  void meshB() {
-      mesh.reset();
-      mesh.primitive(TRIANGLE_STRIP);
-      mesh.vertex(-0.5, -0.5, 0);
-      mesh.color(0.0, 0.0, 0.0);
-      mesh.texCoord(0.0, 0.0);
-
-      mesh.vertex(0.5, -0.5, 0);
-      mesh.color(1.0, 0.0, 0.0);
-      mesh.texCoord(1.0, 0.0);
-
-      mesh.vertex(0.5, 0.5, 0);
-      mesh.color(1.0, 1.0, 0.0);
-      mesh.texCoord(1.0, 1.0);
-
-      mesh.vertex(-0.5, 0.5, 0);
-      mesh.color(0.0, 1.0, 0.0);
-      mesh.texCoord(0.0, 1.0);
-
-      mesh.index(0);
-      mesh.index(1);
-      mesh.index(3);
-      mesh.index(2);
-      mesh.update();
-  }
 };
 
 int main() {
-  #ifndef AL_WINDOWS  
-  {
-    char cwd[1024];
-    if (getcwd(cwd, sizeof(cwd)) != NULL)
-      printf("Current working dir: %s\n", cwd);
-  }
-  #endif
-
   MyApp app;
-  // app.renderMode(OFFLINE, GRAPHICS_CLOCK);
   app.initAudio();
   app.dimensions(640, 480);
   app.title("app test");
   app.fps(60);
   app.decorated(true);
   app.displayMode(Window::DEFAULT_BUF);
-  app.start(); // blocks
+  app.start();
   return 0;
 }
