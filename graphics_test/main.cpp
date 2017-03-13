@@ -7,15 +7,14 @@ using namespace std;
 
 class MyApp : public App {
 public:
-  Nav nav;
-  Viewpoint viewpoint {nav};
-  NavInputControl navInputControl {nav};
+  Viewpoint viewpoint;
+  NavInputControl nav;
   ShaderProgram shader;
   VAOMesh mesh;
   Graphics g;
 
   void onCreate() {
-    append(navInputControl);
+    append(nav.target(viewport));
 
     string const vert_source = R"(
       #version 330
