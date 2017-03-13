@@ -14,8 +14,7 @@ public:
   Graphics g;
 
   void onCreate() {
-    append(nav.target(viewport));
-
+    append(nav.target(viewpoint));
     string const vert_source = R"(
       #version 330
       uniform mat4 MVP;
@@ -76,7 +75,6 @@ public:
     g.rotate(2 * sec(), 0, 0, 1);
     g.draw(mesh);
     g.popMatrix();
-
   }
 
   void generate_mesh() {
