@@ -23,11 +23,10 @@ else ()
   set(CMAKE_CXX_FLAGS "-std=c++14 -Wall -Wno-unused")
 endif (WINDOWS)
 
-include(app_config.cmake) # get app file list user specified
+include(app_config.cmake) # get app config list user specified
 
 if(MACOS)
-    # pkg-config info of glfw from brew gives wrong path
-    # manually adding directory until fixed
+# pkg-config gives wrong path for glfw from homebrew. let's manually add dir
     link_directories(/usr/local/lib)
 endif (MACOS)
 

@@ -5,6 +5,30 @@
 using namespace al;
 using namespace std;
 
+string al_default_vert_shader() {
+  return R"(#version 330
+uniform mat4 MVP;
+
+layout (location = 0) in vec4 position;
+layout (location = 1) in vec4 color;
+
+out vec4 color_;
+
+void main() {
+  gl_Position = MVP * position;
+  color_ = color;
+})";
+}
+
+string al_default_frag_shader() {
+  return R"(#version 330
+in vec4 color_;
+out vec4 frag_color;
+void main() {
+  frag_color = color_;
+})";
+}
+
 class MyApp : public App {
 public:
   Viewpoint viewpoint;
@@ -15,31 +39,8 @@ public:
 
   void onCreate() {
     append(nav.target(viewpoint));
-    string const vert_source = R"(
-      #version 330
-      uniform mat4 MVP;
-
-      layout (location = 0) in vec4 position;
-      layout (location = 1) in vec4 color;
-
-      out vec4 color_;
-
-      void main() {
-        gl_Position = MVP * position;
-        color_ = color;
-      }
-    )";
-
-    string const frag_source = R"(
-      #version 330
-      in vec4 color_;
-      out vec4 frag_color;
-      void main() {
-        frag_color = color_;
-      }
-    )";
-
-    shader.compile(vert_source, frag_source);
+    
+    shader.compile(al_default_vert_shader(), al_default_frag_shader());
 
     generate_mesh();
 

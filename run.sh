@@ -13,6 +13,7 @@ while getopts ":d" opt; do
 done
 echo "BUILD TYPE: ${BUILD_TYPE}"
 
+
 # first build al_lib ###########################################################
 echo "building al_lib"
 mkdir -p build
@@ -22,6 +23,11 @@ cd "al_lib_build_${BUILD_TYPE}"
 cmake ../../al_lib/ -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
 make
 LIB_BUILD_RESULT=$?
+# if lib failed to build, exit
+if [ ${LIB_BUILD_RESULT} != 0 ]; then
+	exit 1
+fi
+
 cd .. # back to al_proj/build
 
 # then build the app ###########################################################
@@ -39,13 +45,16 @@ cd ${APP_NAME}
 cmake ../../${APP_NAME}/ -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
 make
 APP_BUILD_RESULT=$?
-
-# only run executable if return value from make was 0 (success) ################
-if [ ${LIB_BUILD_RESULT} == 0 ]; then
-	if [ ${APP_BUILD_RESULT} == 0 ]; then
-		cd ../.. # back to al_proj
-		cd ${APP_NAME}/bin # go to where excutable is so we have cwd there
-		echo "running ${APP_NAME}"
-		./"${APP_NAME}${POSTFIX}"
-	fi
+# if app failed to build, exit
+if [ ${APP_BUILD_RESULT} != 0 ]; then
+	exit 1
 fi
+
+cd ../.. # back to al_proj
+
+# run app ######################################################################
+cd ${APP_NAME}/bin # go to where excutable is so we have cwd there
+echo " "
+echo "___ running ${APP_NAME} __________"
+echo " "
+./"${APP_NAME}${POSTFIX}"
