@@ -1,3 +1,9 @@
-*/bin/
+# don't ignore bin 'folder'
+!*/bin
+# but ignore things inside bin
+*/bin/*
+# while not ignoring things inside bin/data
+!*/bin/data/
+
 */build/
 build/
