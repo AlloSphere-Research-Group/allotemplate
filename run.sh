@@ -55,6 +55,6 @@ cd ../.. # back to al_proj
 # run app ######################################################################
 cd ${APP_NAME}/bin # go to where excutable is so we have cwd there
 echo " "
-echo "___ running ${APP_NAME} __________"
+echo "___ running: ${APP_NAME} __________"
 echo " "
 ./"${APP_NAME}${POSTFIX}"

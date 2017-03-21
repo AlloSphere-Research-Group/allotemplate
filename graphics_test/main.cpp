@@ -10,7 +10,7 @@ string al_default_vert_shader() {
   return R"(#version 330
 uniform mat4 MVP;
 
-layout (location = 0) in vec4 position;
+layout (location = 0) in vec3 position;
 layout (location = 1) in vec4 color;
 layout (location = 2) in vec2 texcoord;
 layout (location = 3) in vec3 normal;
@@ -20,7 +20,7 @@ out vec2 texcoord_;
 out vec3 normal_;
 
 void main() {
-  gl_Position = MVP * position;
+  gl_Position = MVP * vec4(position, 1.0);
   color_ = color;
   texcoord_ = texcoord;
   normal_ = normal;
@@ -50,14 +50,14 @@ public:
   NavInputControl nav;
   ShaderProgram shader;
   Texture texture;
-  VAOMesh mesh;
+  VAOMesh mesh, mesh2;
 
   void onCreate() {
     append(nav.target(viewpoint));
     
     shader.compile(al_default_vert_shader(), al_default_frag_shader());
     // shader.listParams();
-    
+
     texture.create2D(16, 16, GL_RGBA8, GL_RGBA, GL_FLOAT);
     array<float, 16 * 16 * 4> arr;
     for (int i = 0; i < 16; i++) {
@@ -72,11 +72,18 @@ public:
 
     texture.bind();
     texture.submit(arr.data()); // give raw pointer
-    texture.mipmap(false); // turn on only if needed
+    texture.mipmap(false); // false by default. turn on only if needed
     texture.update();
     texture.unbind();
 
     generate_mesh();
+
+    addIcosahedron(mesh2);
+    auto num_verts = mesh2.vertices().size();
+    for (int i = 0; i < num_verts; i++) {
+      mesh2.color(i / float(num_verts), (num_verts - i) / float(num_verts), 0.0);
+    }
+    mesh2.update();
 
     viewpoint.pos(Vec3f(0, 0, 10)).faceToward(Vec3f(0, 0, 0), Vec3f(0, 1, 0));
     viewpoint.fovy(30).near(0.1).far(100);
@@ -90,11 +97,14 @@ public:
   void onDraw() {
     auto& g = graphics();
     g.clear(0, 1, 1);
+    g.clearDepth(1);
 
     // g.polygonMode(Graphics::POINT);
     // g.pointSize(10);
     // g.polygonMode(Graphics::LINE);
     g.polygonMode(Graphics::FILL);
+    g.depthTesting(true);
+    g.cullFace(true); // default front face is CCW, default cull face is BACK
 
     g.shader(shader);
     g.camera(viewpoint);
@@ -111,10 +121,11 @@ public:
     g.draw(mesh);
     g.popMatrix();
 
+    g.shader().uniform("tex0_mix", 0.0);
     g.pushMatrix();
     g.translate(1, 0, 0);
     g.rotate(2 * sec(), 0, 0, 1);
-    g.draw(mesh);
+    g.draw(mesh2);
     g.popMatrix();
   }
 

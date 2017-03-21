@@ -3,10 +3,14 @@
 #include <string>
 #include <fstream>
 
-std::string get_file_string(std::string path) {
-  std::ifstream fstream(path); // shouldn't be rvalue
-  return std::string {
-    std::istreambuf_iterator<char> { fstream }, // from
+std::string file_to_string(std::string path) {
+  std::ifstream f(path); // shouldn't be rvalue
+  if (!f.is_open()) {
+    std::cout << "couldn't find " << path << std::endl;
+    return "";
+  }
+  else return std::string {
+    std::istreambuf_iterator<char> {f}, // from
     std::istreambuf_iterator<char> {} // to (0 argument returns end iterator)
   };
 }
@@ -17,7 +21,7 @@ using namespace std;
 class MyApp : public App {
 public:
   void onCreate() {
-    cout << get_file_string("data/test.txt") << endl;
+    cout << file_to_string("data/test.txt") << endl;
   }
 
   void onAnimate(double dt) {
