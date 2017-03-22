@@ -1,6 +1,10 @@
 #ifndef INLCUDE_AL_CUBEMAP_HPP
 #define INLCUDE_AL_CUBEMAP_HPP
 
+#include "al/core/math/al_Matrix4.hpp"
+
+namespace al {
+
 inline std::string cubevert() { return R"(
 #version 330
 uniform mat4 M;
@@ -97,60 +101,60 @@ void main() {
 }
 )";}
 
-struct CubeMap {
-  GLuint mID;
-  int mWidth;
-  GLint mInternalFormat = GL_RGBA32F;
-  GLenum mType = GL_UNSIGNED_BYTE;
-
-  void type(GLenum t) { mType = t; }
-
-  GLuint id() const { return mID; }
-
-  void init(int w){
-    mWidth = w;
-    generate();
-    alloc();
-    setParam();
+Mat4f get_cube_mat(int face) {
+  switch (face) {
+    // GL_TEXTURE_CUBE_MAP_POSITIVE_X
+    // vertex.xyz = vec3(-vertex.z, -vertex.y, -vertex.x);
+    case 0: return Mat4f {
+      0, 0,-1, 0,
+      0,-1, 0, 0,
+      -1, 0, 0, 0,
+      0, 0, 0, 1
+    };
+    // GL_TEXTURE_CUBE_MAP_NEGATIVE_X
+    // vertex.xyz = vec3(vertex.z, -vertex.y, vertex.x);
+    case 1: return Mat4f {
+      0, 0, 1, 0,
+      0, -1, 0, 0,
+      1, 0, 0, 0,
+      0, 0, 0, 1
+    };
+    // GL_TEXTURE_CUBE_MAP_POSITIVE_Y
+    // vertex.xyz = vec3(vertex.x, vertex.z, -vertex.y);
+    case 2: return Mat4f {
+      1, 0, 0, 0,
+      0, 0, 1, 0,
+      0, -1, 0, 0,
+      0, 0, 0, 1
+    };
+    // GL_TEXTURE_CUBE_MAP_NEGATIVE_Y
+    // vertex.xyz = vec3(vertex.x, -vertex.z, vertex.y);
+    case 3: return Mat4f {
+      1, 0, 0, 0,
+      0, 0, -1, 0,
+      0, 1, 0, 0,
+      0, 0, 0, 1
+    };
+    // GL_TEXTURE_CUBE_MAP_POSITIVE_Z
+    // vertex.xyz = vec3(vertex.x, -vertex.y, -vertex.z);
+    case 4: return Mat4f {
+      1, 0, 0, 0,
+      0, -1, 0, 0,
+      0, 0, -1, 0,
+      0, 0, 0, 1
+    };
+    // GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
+    // vertex.xyz = vec3(-vertex.x, -vertex.y, vertex.z);
+    case 5: return Mat4f {
+      -1, 0, 0, 0,
+      0, -1, 0, 0,
+      0, 0, 1, 0,
+      0, 0, 0, 1
+    };
   }
+  return Mat4f::identity();
+}
 
-  void generate(){
-    glGenTextures(1, &mID);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, mID);
-  }
-
-  void alloc(){
-    for (int i = 0;i<6;++i){
-      glTexImage2D (
-        GL_TEXTURE_CUBE_MAP_POSITIVE_X+i, //< target
-        0,                                //< lod
-        mInternalFormat,                  //< internal format
-        mWidth, mWidth, 0,                //< equal throughout the faces
-        GL_RGBA,                          //< format of data
-        mType,                            //< data type (e.g. GL_UNSIGNED_BYTE)
-        NULL
-      ); //< no actual data yet
-    }
-  }
-
-  void setParam(){
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-  }
-
-  void bind(int i = 0) {
-      glActiveTexture(GL_TEXTURE0 + i);
-      glBindTexture(GL_TEXTURE_CUBE_MAP, mID);
-  }
-
-  void unbind(int i = 0) {
-      glActiveTexture(GL_TEXTURE0 + i);
-      glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-  }
-
-};
+}
 
 #endif

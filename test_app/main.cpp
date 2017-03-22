@@ -98,9 +98,11 @@ _texcoord = texcoord;
 
     color_attachment.create2D(128, 128);
     depth_attachment.create(128, 128);
+    fbo.begin();
     fbo.attachTexture2D(color_attachment);
     //fbo.attachTexture2D(color_attachment, GL_COLOR_ATTACHMENT0); // same as above
     fbo.attachRBO(depth_attachment);
+    fbo.end();
     printf("fbo status %s\n", fbo.statusString());
 
     fbo.begin();
