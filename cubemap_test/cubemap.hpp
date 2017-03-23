@@ -87,7 +87,7 @@ void main() {
 }
 )";}
 
-inline std::string cubesamplefrag() { return R"(
+inline std::string equirect_cubesample_frag() { return R"(
 #version 330
 uniform samplerCube cubemap;
 in vec2 texcoord_;
@@ -97,6 +97,19 @@ void main() {
   float latti = (texcoord_.y - 0.5) * 3.1415926535;
   vec3 equirectdir = vec3(cos(longi)*cos(latti), sin(latti), sin(longi)*cos(latti));
   vec4 cube_color = texture(cubemap, equirectdir);
+  frag_color = cube_color;
+}
+)";}
+
+inline std::string cubetexsamplefrag() { return R"(
+#version 330
+uniform sampler2D sample_tex;
+uniform samplerCube cubemap;
+in vec2 texcoord_;
+out vec4 frag_color;
+void main() {
+  vec3 dir = texture(sample_tex, texcoord_).rgb;
+  vec4 cube_color = texture(cubemap, dir);
   frag_color = cube_color;
 }
 )";}

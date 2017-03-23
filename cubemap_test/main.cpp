@@ -22,6 +22,7 @@ public:
   ShaderProgram cubeshader;
   ShaderProgram cubesampleshader;
   VAOMesh quad;
+  Texture cubesampletex;
 
   void onCreate() {
     append(nav.target(cube_view));
@@ -63,9 +64,10 @@ public:
     cubeshader.uniform("light_mix", 0.0f);
     cubeshader.end();
 
-    cubesampleshader.compile(cubesamplevert(), cubesamplefrag());
+    cubesampleshader.compile(cubesamplevert(), cubetexsamplefrag());
     cubesampleshader.begin();
-    cubesampleshader.uniform("cubemap", 0);
+    cubesampleshader.uniform("sample_tex", 0);
+    cubesampleshader.uniform("cubemap", 1);
     cubesampleshader.end();
 
     quad.reset();
@@ -83,6 +85,27 @@ public:
     quad.vertex(3, 1.5, 0);
     quad.texCoord(1.0, 1.0);
     quad.update(); // send to gpu buffers
+
+    int sampletex_width = 4 * cuberes;
+    int sampletex_height = 2 * cuberes;
+    cubesampletex.create2D(sampletex_width, sampletex_height, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+    vector<float> arr;
+    arr.resize(sampletex_width * sampletex_height * 4);
+    for (int i = 0; i < sampletex_width; i++) {
+        float longi = i / float(sampletex_width) * 3.1415926535 * 2.0;
+        for (int j = 0; j < sampletex_height; j++) {
+            int idx = i + sampletex_width * j;
+            float latti = (j / float(sampletex_height) - 0.5) * 3.1415926535;
+            arr[4 * idx + 0] = cosf(longi) * cosf(latti);
+            arr[4 * idx + 1] = sinf(latti);
+            arr[4 * idx + 2] = sinf(longi) * cosf(latti);
+            arr[4 * idx + 3] = 0.0f;
+        }
+    }
+    cubesampletex.bind();
+    cubesampletex.submit(arr.data()); // give raw pointer
+    cubesampletex.update();
+    cubesampletex.unbind();
   }
 
   void onAnimate(double dt) {
@@ -126,8 +149,9 @@ public:
     g.camera(stationary_view);
 
     // draw cubemap
-    g.shader(cubesampleshader);    
-    g.texture(cubemap);
+    g.shader(cubesampleshader);
+    g.texture(cubesampletex, 0);
+    g.texture(cubemap, 1);
     g.draw(quad);
 
     // draw regular scene
