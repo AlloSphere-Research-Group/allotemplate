@@ -1,5 +1,5 @@
-#include "al/core.hpp"
 #include "cubemap.hpp"
+#include "al/core.hpp"
 #include <iostream>
 #include <string>
 #include <array>
@@ -11,28 +11,15 @@ int const cuberes {512};
 
 class MyApp : public App {
 public:
-  Viewpoint cube_view;
   NavInputControl nav;
   ShaderProgram shader;
   VAOMesh mesh;
-  FBO fbo;
-  Texture cubemap;
-  RBO rbo;
-  Viewpoint stationary_view;
-  ShaderProgram cubeshader;
-  ShaderProgram cubesampleshader;
-  VAOMesh quad;
   Texture cubesampletex;
+  CubeRender cube_render;
+  CubeSampler cube_sampler;
 
   void onCreate() {
-    append(nav.target(cube_view));
-    
-    shader.compile(al_default_vert_shader(), al_default_frag_shader());
-    shader.begin();
-    shader.uniform("tex0", 0);
-    shader.uniform("tex0_mix", 0.0);
-    shader.uniform("light_mix", 0.0f);
-    shader.end();
+    append(nav.target(cube_render.view_));
 
     addIcosahedron(mesh);
     auto num_verts = mesh.vertices().size();
@@ -41,51 +28,9 @@ public:
     }
     mesh.update();
 
-    cube_view.pos(Vec3f(0, 0, 10)).faceToward(Vec3f(0, 0, 0), Vec3f(0, 1, 0));
-    cube_view.fovy(90).near(0.1).far(100);
-    cube_view.viewport(0, 0, cuberes, cuberes);
+    cube_render.init(cuberes);
 
-    stationary_view.pos(Vec3f(0, 0, 10)).faceToward(Vec3f(0, 0, 0), Vec3f(0, 1, 0));
-    stationary_view.fovy(30).near(0.1).far(100);
-    stationary_view.viewport(0, 0, fbWidth(), fbHeight());
-
-    cubemap.createCubemap(cuberes, GL_RGBA32F, GL_RGBA, GL_FLOAT);
-    rbo.create(cuberes, cuberes);
-    fbo.bind();
-    fbo.attachCubemapFace(cubemap, GL_TEXTURE_CUBE_MAP_POSITIVE_X);
-    fbo.attachRBO(rbo);
-    fbo.unbind();
-    printf("fbo status %s\n", fbo.statusString());
-
-    cubeshader.compile(cubevert(), cubefrag());
-    cubeshader.begin();
-    cubeshader.uniform("tex0", 0);
-    cubeshader.uniform("tex0_mix", 0.0);
-    cubeshader.uniform("light_mix", 0.0f);
-    cubeshader.end();
-
-    cubesampleshader.compile(cubesamplevert(), cubetexsamplefrag());
-    cubesampleshader.begin();
-    cubesampleshader.uniform("sample_tex", 0);
-    cubesampleshader.uniform("cubemap", 1);
-    cubesampleshader.end();
-
-    quad.reset();
-    quad.primitive(Mesh::TRIANGLES);
-    quad.vertex(-3, -1.5, 0);
-    quad.texCoord(0.0, 0.0);
-    quad.vertex(3, -1.5, 0);
-    quad.texCoord(1.0, 0.0);
-    quad.vertex(-3, 1.5, 0);
-    quad.texCoord(0.0, 1.0);
-    quad.vertex(-3, 1.5, 0);
-    quad.texCoord(0.0, 1.0);
-    quad.vertex(3, -1.5, 0);
-    quad.texCoord(1.0, 0.0);
-    quad.vertex(3, 1.5, 0);
-    quad.texCoord(1.0, 1.0);
-    quad.update(); // send to gpu buffers
-
+    // generate dummy texture (equirectangular)
     int sampletex_width = 4 * cuberes;
     int sampletex_height = 2 * cuberes;
     cubesampletex.create2D(sampletex_width, sampletex_height, GL_RGBA32F, GL_RGBA, GL_FLOAT);
@@ -106,6 +51,10 @@ public:
     cubesampletex.submit(arr.data()); // give raw pointer
     cubesampletex.update();
     cubesampletex.unbind();
+
+    cube_sampler.init();
+    cube_sampler.cubesampletex_ = &cubesampletex;
+    cube_sampler.cubemap_ = &(cube_render.cubemap_);
   }
 
   void onAnimate(double dt) {
@@ -119,55 +68,27 @@ public:
     g.cullFace(true); // default front face is CCW, default cull face is BACK
 
     // bind cubemap fbo and capture 6 faces
-    fbo.bind();
-
-    g.shader(cubeshader);
-    g.camera(cube_view);
-    g.shader().uniform("omni_eyeSep", 0.01);
-    g.shader().uniform("omni_radius", 1e10);
-
-    for (int j = 0; j < 6; j++) {
-      g.shader().uniform("C", get_cube_mat(j));
-      fbo.attachCubemapFace(cubemap, GL_TEXTURE_CUBE_MAP_POSITIVE_X+j);
-      g.clear(j / 5.0f, (5 - j) / 5.0f, 1.0f);
+    cube_render.begin();
+    cube_render.set_eye(-1);
+    for (int i = 0; i < 6; i++) {
+      cube_render.set_face(i);
+      g.clearColor(i / 5.0f, (5 - i) / 5.0f, 1.0f);
       g.clearDepth(1);
-
       g.pushMatrix();
-      g.translate(sinf(sec()), 0, 0);
+      g.translate(sinf(sec()), 0, -10);
       g.rotate(sinf(2 * sec()), 0, 0, 1);
       g.rotate(sinf(3 * sec()), 0, 1, 0);
       g.scale(3, 2, 1);
       g.draw(mesh);
       g.popMatrix();
     }
+    cube_render.end();
 
-    fbo.end();
-
-    g.clear(0, 0, 0);
+    // now sample cubemap and draw result
+    g.clearColor(0, 0, 0);
     g.clearDepth(1);
-
-    g.camera(stationary_view);
-
-    // draw cubemap
-    g.shader(cubesampleshader);
-    g.texture(cubesampletex, 0);
-    g.texture(cubemap, 1);
-    g.draw(quad);
-
-    // draw regular scene
-    g.shader(shader);
-    g.pushMatrix();
-    g.translate(sinf(sec()), 0, 0);
-    g.rotate(sinf(2 * sec()), 0, 0, 1);
-    g.rotate(sinf(3 * sec()), 0, 1, 0);
-    g.scale(0.5, 0.5, 1);
-    g.draw(mesh);
-    g.popMatrix();
-
-  }
-
-  void onResize(int w, int h) {
-    stationary_view.viewport(0, 0, fbWidth(), fbHeight());
+    g.viewport(0, 0, fbWidth(), fbHeight());
+    cube_sampler.draw();
   }
 };
 

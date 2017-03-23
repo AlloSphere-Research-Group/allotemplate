@@ -2,6 +2,12 @@
 #define INLCUDE_AL_CUBEMAP_HPP
 
 #include "al/core/math/al_Matrix4.hpp"
+#include "al/core/gl/al_Viewpoint.hpp"
+#include "al/core/gl/al_FBO.hpp"
+#include "al/core/gl/al_Shader.hpp"
+#include "al/core/gl/al_Texture.hpp"
+#include "al/core/gl/al_VAOMesh.hpp"
+
 
 namespace al {
 
@@ -74,7 +80,6 @@ void main() {
 
 inline std::string cubesamplevert() { return R"(
 #version 330
-uniform mat4 MVP;
 
 layout (location = 0) in vec3 position;
 layout (location = 2) in vec2 texcoord;
@@ -82,7 +87,7 @@ layout (location = 2) in vec2 texcoord;
 out vec2 texcoord_;
 
 void main() {
-  gl_Position = MVP * vec4(position, 1.0);
+  gl_Position = vec4(position, 1.0);
   texcoord_ = texcoord;
 }
 )";}
@@ -167,6 +172,108 @@ Mat4f get_cube_mat(int face) {
   }
   return Mat4f::identity();
 }
+
+class CubeRender {
+public:
+  int res_;
+  Viewpoint view_;
+  Texture cubemap_;
+  RBO rbo_;
+  FBO fbo_;
+  ShaderProgram cubeshader_;
+  float radius_;
+
+  void init(int res=1024, float near=0.1, float far=100, float radius = 1e10) {
+    res_ = res;
+    radius_ = radius;
+    view_.fovy(90).near(near).far(far);
+    view_.viewport(0, 0, res_, res_);
+    cubemap_.createCubemap(res_, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+    rbo_.create(res_, res_);
+    fbo_.bind();
+    fbo_.attachCubemapFace(cubemap_, GL_TEXTURE_CUBE_MAP_POSITIVE_X);
+    fbo_.attachRBO(rbo_);
+    fbo_.unbind();
+    cubeshader_.compile(cubevert(), cubefrag());
+    cubeshader_.begin();
+    cubeshader_.uniform("tex0", 0);
+    cubeshader_.uniform("tex0_mix", 0.0);
+    cubeshader_.uniform("light_mix", 0.0f);
+    cubeshader_.uniform("omni_radius", radius_);
+    cubeshader_.end();
+  }
+
+  void begin() {
+    auto& g = graphics();
+    fbo_.bind();
+    g.shader(cubeshader_);
+    g.camera(view_);
+  }
+
+  void set_eye(int i) {
+    auto& g = graphics();
+    g.shader(cubeshader_);
+    g.shader().uniform("omni_eyeSep", 0.0);
+  }
+
+  void set_face(int f) {
+    auto& g = graphics();
+    g.shader(cubeshader_);
+    g.shader().uniform("C", get_cube_mat(f));
+    fbo_.attachCubemapFace(cubemap_, GL_TEXTURE_CUBE_MAP_POSITIVE_X+f);
+  }
+
+  void end() {
+    fbo_.unbind();
+  }
+
+  void view(Viewpoint& v) {
+    view_.pose(v);
+  }
+};
+
+class CubeSampler {
+public:
+  Texture* cubemap_;
+  Texture* cubesampletex_;
+  ShaderProgram sampleshader_;
+  VAOMesh quad_;
+
+  void init() {
+    // vertex shader doesn't use mvp matrix.
+    // draw methos fills the viewport
+    sampleshader_.compile(cubesamplevert(), cubetexsamplefrag());
+    sampleshader_.begin();
+    sampleshader_.uniform("sample_tex", 0);
+    sampleshader_.uniform("cubemap", 1);
+    sampleshader_.end();
+
+    quad_.reset();
+    quad_.primitive(Mesh::TRIANGLES);
+    quad_.vertex(-1, -1, 0);
+    quad_.texCoord(0.0, 0.0);
+    quad_.vertex(1, -1, 0);
+    quad_.texCoord(1.0, 0.0);
+    quad_.vertex(-1, 1, 0);
+    quad_.texCoord(0.0, 1.0);
+    quad_.vertex(-1, 1, 0);
+    quad_.texCoord(0.0, 1.0);
+    quad_.vertex(1, -1, 0);
+    quad_.texCoord(1.0, 0.0);
+    quad_.vertex(1, 1, 0);
+    quad_.texCoord(1.0, 1.0);
+    quad_.update();
+  }
+
+  // fills viewport
+  void draw() {
+    auto& g = graphics();
+    g.shader(sampleshader_);
+    g.texture(*cubesampletex_, 0);
+    g.texture(*cubemap_, 1);
+    g.draw(quad_);
+  }
+};
 
 }
 
