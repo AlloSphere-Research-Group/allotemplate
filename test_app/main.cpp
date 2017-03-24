@@ -106,7 +106,7 @@ _texcoord = texcoord;
     printf("fbo status %s\n", fbo.statusString());
 
     fbo.begin();
-    g.clear(0, 1, 0, 1);
+    g.clearColor(0, 1, 0, 1);
     fbo.end();
 
     server.handler(*this);
@@ -119,7 +119,7 @@ _texcoord = texcoord;
   }
 
   void onDraw() {
-    g.clear();
+    g.clearColor();
   }
 
   void onKeyDown(Keyboard const& k) {

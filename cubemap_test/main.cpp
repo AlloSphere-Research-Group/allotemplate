@@ -68,7 +68,7 @@ public:
     g.cullFace(true); // default front face is CCW, default cull face is BACK
 
     // bind cubemap fbo and capture 6 faces
-    cube_render.begin();
+    cube_render.begin(g);
     cube_render.set_eye(-1);
     for (int i = 0; i < 6; i++) {
       cube_render.set_face(i);

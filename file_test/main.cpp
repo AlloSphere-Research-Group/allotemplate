@@ -30,7 +30,7 @@ public:
 
   void onDraw() {
     auto& g = graphics();
-    g.clear(0, 1, 1);
+    g.clearColor(0, 1, 1);
   }
 
 };

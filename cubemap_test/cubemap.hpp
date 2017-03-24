@@ -182,6 +182,7 @@ public:
   FBO fbo_;
   ShaderProgram cubeshader_;
   float radius_;
+  Graphics* g;
 
   void init(int res=1024, float near=0.1, float far=100, float radius = 1e10) {
     res_ = res;
@@ -203,23 +204,21 @@ public:
     cubeshader_.end();
   }
 
-  void begin() {
-    auto& g = graphics();
+  void begin(Graphics& graphics) {
+    g = &graphics;
     fbo_.bind();
-    g.shader(cubeshader_);
-    g.camera(view_);
+    g->shader(cubeshader_);
+    g->camera(view_);
   }
 
   void set_eye(int i) {
-    auto& g = graphics();
-    g.shader(cubeshader_);
-    g.shader().uniform("omni_eyeSep", 0.0);
+    g->shader(cubeshader_);
+    g->shader().uniform("omni_eyeSep", 0.0);
   }
 
   void set_face(int f) {
-    auto& g = graphics();
-    g.shader(cubeshader_);
-    g.shader().uniform("C", get_cube_mat(f));
+    g->shader(cubeshader_);
+    g->shader().uniform("C", get_cube_mat(f));
     fbo_.attachCubemapFace(cubemap_, GL_TEXTURE_CUBE_MAP_POSITIVE_X+f);
   }
 
