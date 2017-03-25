@@ -13,10 +13,11 @@ class MyApp : public App {
 public:
   NavInputControl nav;
   ShaderProgram shader;
-  VAOMesh mesh;
+  VAOMesh mesh, texquad;
   Texture cubesampletex;
   CubeRender cube_render;
   CubeSampler cube_sampler;
+  Graphics g {*this};
 
   void onCreate() {
     append(nav.target(cube_render.view_));
@@ -27,6 +28,9 @@ public:
       mesh.color(i / float(num_verts), (num_verts - i) / float(num_verts), 0.0);
     }
     mesh.update();
+
+    addTexQuad(texquad);
+    texquad.update();
 
     cube_render.init(cuberes);
 
@@ -53,8 +57,8 @@ public:
     cubesampletex.unbind();
 
     cube_sampler.init();
-    cube_sampler.cubesampletex_ = &cubesampletex;
-    cube_sampler.cubemap_ = &(cube_render.cubemap_);
+    cube_sampler.sampleTexture(cubesampletex);
+    cube_sampler.cubemap(cube_render.cubemap_);
   }
 
   void onAnimate(double dt) {
@@ -62,7 +66,7 @@ public:
   }
 
   void onDraw() {
-    auto& g = graphics();
+    // auto& g = graphics();
     g.polygonMode(Graphics::FILL);
     g.depthTesting(true);
     g.cullFace(true); // default front face is CCW, default cull face is BACK
@@ -84,11 +88,13 @@ public:
     }
     cube_render.end();
 
-    // now sample cubemap and draw result
+    // now sample cubemap and draw result to quad
     g.clearColor(0, 0, 0);
     g.clearDepth(1);
-    g.viewport(0, 0, fbWidth(), fbHeight());
-    cube_sampler.draw();
+
+    cube_sampler.set_shader_and_texture(g);
+    g.camera(Viewpoint::IDENTITY);
+    g.draw(texquad); // fill viewport
   }
 };
 

@@ -80,6 +80,7 @@ void main() {
 
 inline std::string cubesamplevert() { return R"(
 #version 330
+uniform mat4 MVP;
 
 layout (location = 0) in vec3 position;
 layout (location = 2) in vec2 texcoord;
@@ -87,7 +88,7 @@ layout (location = 2) in vec2 texcoord;
 out vec2 texcoord_;
 
 void main() {
-  gl_Position = vec4(position, 1.0);
+  gl_Position = MVP * vec4(position, 1.0);
   texcoord_ = texcoord;
 }
 )";}
@@ -236,7 +237,6 @@ public:
   Texture* cubemap_;
   Texture* cubesampletex_;
   ShaderProgram sampleshader_;
-  VAOMesh quad_;
 
   void init() {
     // vertex shader doesn't use mvp matrix.
@@ -246,31 +246,20 @@ public:
     sampleshader_.uniform("sample_tex", 0);
     sampleshader_.uniform("cubemap", 1);
     sampleshader_.end();
-
-    quad_.reset();
-    quad_.primitive(Mesh::TRIANGLES);
-    quad_.vertex(-1, -1, 0);
-    quad_.texCoord(0.0, 0.0);
-    quad_.vertex(1, -1, 0);
-    quad_.texCoord(1.0, 0.0);
-    quad_.vertex(-1, 1, 0);
-    quad_.texCoord(0.0, 1.0);
-    quad_.vertex(-1, 1, 0);
-    quad_.texCoord(0.0, 1.0);
-    quad_.vertex(1, -1, 0);
-    quad_.texCoord(1.0, 0.0);
-    quad_.vertex(1, 1, 0);
-    quad_.texCoord(1.0, 1.0);
-    quad_.update();
   }
 
-  // fills viewport
-  void draw() {
-    auto& g = graphics();
+  void sampleTexture(Texture& sample_texture) {
+    cubesampletex_ = &sample_texture;
+  }
+
+  void cubemap(Texture& cubemap_texture) {
+    cubemap_ = &cubemap_texture;
+  }
+
+  void set_shader_and_texture(Graphics& g) {
     g.shader(sampleshader_);
     g.texture(*cubesampletex_, 0);
     g.texture(*cubemap_, 1);
-    g.draw(quad_);
   }
 };
 
