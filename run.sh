@@ -40,6 +40,10 @@ if [ ${LASTCHAR} == "/" ]; then
     # Strips shortest match of $substring from back of $string.
     APP_NAME=${APP_NAME%/}
 fi
+# Replace all periods and slashes with underscores.
+# to see how it works, try: echo "t_ f\\ e/" | sed 's/[\.\/\\]/_/g'
+APP_NAME=$(echo "${APP_NAME}" | sed 's/[\.\/\\]/_/g')
+
 mkdir -p ${APP_NAME}
 cd ${APP_NAME}
 cmake ../../${APP_NAME}/ -DCMAKE_BUILD_TYPE=${BUILD_TYPE}

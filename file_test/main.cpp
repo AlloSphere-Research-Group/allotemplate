@@ -4,7 +4,7 @@
 #include <fstream>
 
 std::string file_to_string(std::string path) {
-  std::ifstream f(path); // shouldn't be rvalue
+  std::ifstream f(path); // f couldn't be rvalue
   if (!f.is_open()) {
     std::cout << "couldn't find " << path << std::endl;
     return "";
