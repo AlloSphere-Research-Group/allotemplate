@@ -24,10 +24,12 @@ void main() {
 
 std::string frag_shader() { return R"(
 #version 330
+uniform vec4 uniformColor;
+uniform float uniformColorMix;
 in vec4 color_;
 out vec4 frag_color;
 void main() {
-  frag_color = color_;
+  frag_color = mix(color_, uniformColor, uniformColorMix);
 }
 )";}
 
@@ -44,11 +46,8 @@ public:
     mesh.reset();
     mesh.primitive(Mesh::TRIANGLES);
     mesh.vertex(0, 0, 0);
-    mesh.color(1.0, 0.0, 0.0);
     mesh.vertex(100, 0, 0);
-    mesh.color(0.0, 1.0, 0.0);
     mesh.vertex(0, 100, 0);
-    mesh.color(0.0, 0.0, 1.0);
     mesh.update();
 
   }
@@ -64,11 +63,13 @@ public:
     g.cullFace(false);
     g.camera(Viewpoint::ORTHO_FOR_2D);
 
+    g.uniformColorMix(1);
     g.polygonMode(Graphics::FILL);
     for (int j = 0; j < 3; j += 1) {
       for (int i = 0; i < 4; i += 1) {
         g.pushMatrix();
         g.translate(50 + i * 150, 50 + j * 150);
+        g.uniformColor(i / 3.0f, j / 2.0f, 0);
         g.draw(mesh);
         g.popMatrix();
       }
