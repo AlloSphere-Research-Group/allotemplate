@@ -34,7 +34,8 @@ public:
 
     cube_render.init(cuberes);
 
-    // generate dummy texture (equirectangular)
+    // we don't have warp/blend texture now
+    // so generate dummy texture (equirectangular)
     int sampletex_width = 4 * cuberes;
     int sampletex_height = 2 * cuberes;
     cubesampletex.create2D(sampletex_width, sampletex_height, GL_RGBA32F, GL_RGBA, GL_FLOAT);

@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <string>
+#include <array>
 
 using namespace al;
 using namespace std;
@@ -16,6 +17,7 @@ public:
   ShaderProgram shader;
   Texture texture;
   VAOMesh mesh, mesh2;
+  Graphics g {*this};
 
   void onCreate() {
     // set nav input event handler so that we can navigate with qwe/asd/zxc
