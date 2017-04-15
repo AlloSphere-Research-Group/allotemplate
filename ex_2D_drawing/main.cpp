@@ -48,7 +48,7 @@ public:
     mesh.vertex(0, 0, 0);
     mesh.vertex(100, 0, 0);
     mesh.vertex(0, 100, 0);
-    mesh.update();
+    mesh.update(); // it is important to upload mesh data to VAO
 
   }
 
@@ -58,11 +58,14 @@ public:
 
     g.shader(shader);
 
-    // below three calls later can be wrapped into g.draw2D();
+    // setting for 2D drawing
     g.depthTesting(false);
     g.cullFace(false);
-    g.camera(Viewpoint::ORTHO_FOR_2D);
+    // puts bottom left of window to be (0, 0)
+    // and top right to be (width(), height())
+    g.camera(Viewpoint::ORTHO_FOR_2D); 
 
+    // amount you want to use uniform color intead of per vertex mesh color
     g.uniformColorMix(1);
     g.polygonMode(Graphics::FILL);
     for (int j = 0; j < 3; j += 1) {

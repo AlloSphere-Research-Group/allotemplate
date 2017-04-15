@@ -17,6 +17,11 @@ public:
 
   void onInit() {
     cout << "onInit: after glfw init, before window creation" << endl;
+    // so you can do things like
+    GLFWmonitor* primary = glfwGetPrimaryMonitor();
+    const GLFWvidmode* mode = glfwGetVideoMode(primary);
+    // change dimensions depending on the monitor resolution
+    dimensions(mode->width / 4, mode->height / 2);
   }
 
   void onCreate() {
@@ -68,7 +73,7 @@ public:
     static int i = 0;
     if (i == 0) cout << "mouse moved" << endl;
     i++;
-    i = i % 20;
+    i = i % 40;
   }
 
 };

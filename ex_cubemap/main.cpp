@@ -67,7 +67,6 @@ public:
   }
 
   void onDraw() {
-    // auto& g = graphics();
     g.polygonMode(Graphics::FILL);
     g.depthTesting(true);
     g.cullFace(true); // default front face is CCW, default cull face is BACK
