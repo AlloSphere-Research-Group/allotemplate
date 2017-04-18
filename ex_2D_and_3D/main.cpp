@@ -121,7 +121,7 @@ public:
     g.cullFace(false);
     g.camera(Viewpoint::ORTHO_FOR_2D);
 
-    // prepare rect to texture 3D drawing we did
+    // prepare rect to show 3D drawing we did
     VAOMesh m;
     float w = width();
     float h = height();

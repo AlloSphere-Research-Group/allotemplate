@@ -64,6 +64,7 @@ public:
 
   void onAnimate(double dt) {
       nav.step();
+      
   }
 
   void onDraw() {

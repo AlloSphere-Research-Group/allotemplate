@@ -7,7 +7,7 @@
 #include "al/core/gl/al_Shader.hpp"
 #include "al/core/gl/al_Texture.hpp"
 #include "al/core/gl/al_VAOMesh.hpp"
-
+#include "al/core/gl/al_Graphics.hpp"
 
 namespace al {
 
