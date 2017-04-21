@@ -3,7 +3,18 @@
 # get this run script's abosolute path
 INITIALDIR=${PWD}
 echo "Script executed from: ${INITIALDIR}"
-ALPROJ_PATH=$(dirname ${BASH_SOURCE}) # BASH_SOURCE has the script's absolute path
+# BASH_SOURCE has the script's path
+# could be absolute, could be relative
+SCRIPT_PATH=$(dirname ${BASH_SOURCE})
+FIRSTCHAR=${SCRIPT_PATH:0:1}
+# echo "FIRST CHAR: ${FIRSTCHAR}"
+if [ ${FIRSTCHAR} == "/" ]; then
+  # it's asolute path
+  ALPROJ_PATH=${SCRIPT_PATH}
+else
+  # SCRIPT_PATH was relative
+  ALPROJ_PATH=${INITIALDIR}/${SCRIPT_PATH}
+fi
 echo "absolute path to scipt: ${ALPROJ_PATH}"
 # and cd to where the scipt is
 cd ${ALPROJ_PATH}
