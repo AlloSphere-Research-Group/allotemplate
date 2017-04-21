@@ -49,12 +49,9 @@ if [ ${LIB_BUILD_RESULT} != 0 ]; then
 	exit 1
 fi
 
-cd .. # back to al_proj/build
-
 # then build the app ###########################################################
 APP_NAME="$1" # first argument (assumming we consumed all the options above)
 APP_PATH=${INITIALDIR}/${APP_NAME}
-echo "app path: ${APP_PATH}"
 
 # discard '/'' in the end of the input directory (if it has)
 LASTCHAR=${APP_NAME:(-1)}
@@ -73,8 +70,11 @@ echo " "
 echo "___ building ${APP_NAME} __________"
 echo " "
 
-mkdir -p ${APP_NAME} # remember that we were in directory 'build'
-cd ${APP_NAME}
+echo "app path: ${APP_PATH}"
+# go to where app is
+cd ${APP_PATH}
+mkdir -p build
+cd build
 cmake ${APP_PATH}/ -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -Dal_path=${ALPROJ_PATH}/al_lib
 make
 APP_BUILD_RESULT=$?
@@ -83,10 +83,10 @@ if [ ${APP_BUILD_RESULT} != 0 ]; then
 	exit 1
 fi
 
-cd ../.. # back to al_proj
-
 # run app ######################################################################
-cd ${APP_PATH}/bin # go to where excutable is so we have cwd there
+# go to where excutable is so we have cwd there
+# (app's cmake is set to put binary in 'bin')
+cd ${APP_PATH}/bin
 echo " "
 echo "___ running ${APP_NAME} __________"
 echo " "
