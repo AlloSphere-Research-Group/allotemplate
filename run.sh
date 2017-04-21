@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# get this run script's abosolute path
+INITIALDIR=${PWD}
+echo "Script executed from: ${INITIALDIR}"
+ALPROJ_PATH=$(dirname ${BASH_SOURCE}) # BASH_SOURCE has the script's absolute path
+echo "absolute path to scipt: ${ALPROJ_PATH}"
+# and cd to where the scipt is
+cd ${ALPROJ_PATH}
+echo "changed working directory to where the script is. now in ${PWD}"
+
 # check if we want debug build
 BUILD_TYPE=Release
 while getopts ":d" opt; do
@@ -12,7 +21,6 @@ while getopts ":d" opt; do
   esac
 done
 echo "BUILD TYPE: ${BUILD_TYPE}"
-
 
 # first build al_lib ###########################################################
 echo " "
@@ -34,9 +42,9 @@ cd .. # back to al_proj/build
 
 # then build the app ###########################################################
 APP_NAME="$1" # first argument (assumming we consumed all the options above)
-echo " "
-echo "___ building ${APP_NAME} __________"
-echo " "
+APP_PATH=${INITIALDIR}/${APP_NAME}
+echo "app path: ${APP_PATH}"
+
 # discard '/'' in the end of the input directory (if it has)
 LASTCHAR=${APP_NAME:(-1)}
 if [ ${LASTCHAR} == "/" ]; then
@@ -44,13 +52,19 @@ if [ ${LASTCHAR} == "/" ]; then
     # Strips shortest match of $substring from back of $string.
     APP_NAME=${APP_NAME%/}
 fi
+# get only last foldername
+APP_NAME=$(basename "$1")
 # Replace all periods and slashes with underscores.
 # to see how it works, try: echo "t_ f\\ e/" | sed 's/[\.\/\\]/_/g'
 APP_NAME=$(echo "${APP_NAME}" | sed 's/[\.\/\\]/_/g')
 
-mkdir -p ${APP_NAME}
+echo " "
+echo "___ building ${APP_NAME} __________"
+echo " "
+
+mkdir -p ${APP_NAME} # remember that we were in directory 'build'
 cd ${APP_NAME}
-cmake ../../${APP_NAME}/ -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
+cmake ${APP_PATH}/ -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -Dal_path=${ALPROJ_PATH}/al_lib
 make
 APP_BUILD_RESULT=$?
 # if app failed to build, exit
@@ -61,8 +75,8 @@ fi
 cd ../.. # back to al_proj
 
 # run app ######################################################################
-cd ${APP_NAME}/bin # go to where excutable is so we have cwd there
+cd ${APP_PATH}/bin # go to where excutable is so we have cwd there
 echo " "
-echo "___ running: ${APP_NAME} __________"
+echo "___ running ${APP_NAME} __________"
 echo " "
 ./"${APP_NAME}${POSTFIX}"
