@@ -15,7 +15,9 @@ echo "BUILD TYPE: ${BUILD_TYPE}"
 
 
 # first build al_lib ###########################################################
-echo "building al_lib"
+echo " "
+echo "___ building al_lib __________"
+echo " "
 mkdir -p build
 cd build
 mkdir -p "al_lib_build_${BUILD_TYPE}"
@@ -31,8 +33,10 @@ fi
 cd .. # back to al_proj/build
 
 # then build the app ###########################################################
-echo "building ${APP_NAME}"
 APP_NAME="$1" # first argument (assumming we consumed all the options above)
+echo " "
+echo "___ building ${APP_NAME} __________"
+echo " "
 # discard '/'' in the end of the input directory (if it has)
 LASTCHAR=${APP_NAME:(-1)}
 if [ ${LASTCHAR} == "/" ]; then

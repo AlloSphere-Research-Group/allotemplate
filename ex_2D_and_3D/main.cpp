@@ -70,7 +70,7 @@ public:
     mesh_2d.update(); // it is important to upload mesh data to VAO
 
     addIcosahedron(mesh_3d);
-    auto num_verts = mesh_3d.vertices().size();
+    int num_verts = mesh_3d.vertices().size();
     for (int i = 0; i < num_verts; i++) {
       mesh_3d.color(i / float(num_verts), (num_verts - i) / float(num_verts), 0.0);
     }
