@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# get this run script's abosolute path
 INITIALDIR=${PWD}
 echo "Script executed from: ${INITIALDIR}"
+
 # BASH_SOURCE has the script's path
 # could be absolute, could be relative
 SCRIPT_PATH=$(dirname ${BASH_SOURCE})
+
 FIRSTCHAR=${SCRIPT_PATH:0:1}
-# echo "FIRST CHAR: ${FIRSTCHAR}"
 if [ ${FIRSTCHAR} == "/" ]; then
   # it's asolute path
   ALPROJ_PATH=${SCRIPT_PATH}
@@ -15,10 +15,8 @@ else
   # SCRIPT_PATH was relative
   ALPROJ_PATH=${INITIALDIR}/${SCRIPT_PATH}
 fi
-echo "absolute path to scipt: ${ALPROJ_PATH}"
-# and cd to where the scipt is
+
 cd ${ALPROJ_PATH}
-echo "changed working directory to where the script is. now in ${PWD}"
 
 # check if we want debug build
 BUILD_TYPE=Release
@@ -51,7 +49,17 @@ fi
 
 # then build the app ###########################################################
 APP_NAME="$1" # first argument (assumming we consumed all the options above)
-APP_PATH=${INITIALDIR}/${APP_NAME}
+
+if [ ${APP_NAME} == "." ]; then
+  # if '.' was given for the app directory,
+  # it means script was run from app path
+  # so initial dir has the app path
+  # and it's basename will be app name
+  APP_NAME=${INITIALDIR}
+  APP_PATH=${APP_NAME}
+else
+  APP_PATH=${INITIALDIR}/${APP_NAME}
+fi
 
 # discard '/'' in the end of the input directory (if it has)
 LASTCHAR=${APP_NAME:(-1)}
@@ -60,21 +68,20 @@ if [ ${LASTCHAR} == "/" ]; then
     # Strips shortest match of $substring from back of $string.
     APP_NAME=${APP_NAME%/}
 fi
+
 # get only last foldername
-APP_NAME=$(basename "$1")
-# Replace all periods and slashes with underscores.
-# to see how it works, try: echo "t_ f\\ e/" | sed 's/[\.\/\\]/_/g'
-APP_NAME=$(echo "${APP_NAME}" | sed 's/[\.\/\\]/_/g')
+APP_NAME=$(basename ${APP_NAME})
 
 echo " "
 echo "___ building ${APP_NAME} __________"
 echo " "
 
 echo "app path: ${APP_PATH}"
-# go to where app is
 cd ${APP_PATH}
 mkdir -p build
 cd build
+# if app is run with this script, al_path is set here
+# if run.sh script was not used, CMakeList sets it to default value
 cmake ${APP_PATH}/ -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -Dal_path=${ALPROJ_PATH}/al_lib
 make
 APP_BUILD_RESULT=$?
