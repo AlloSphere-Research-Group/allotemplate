@@ -52,7 +52,6 @@ void onCreate() {
 
   void onAnimate(double dt) {
     delta_t = dt;
-    sl1.setValue(0.5);
   }
 
   void onDraw() {
@@ -83,7 +82,7 @@ void onCreate() {
 
   void onMouseDown(Mouse const& m) {
     float x = m.x();
-    float y = width() - m.y();
+    float y = m.y();
     auto b = m.button();
     auto btn = glv::Mouse::Left;
     switch (b) {
@@ -98,7 +97,7 @@ void onCreate() {
 
   void onMouseUp(Mouse const& m) {
     float x = m.x();
-    float y = width() - m.y();
+    float y = m.y();
     auto b = m.button();
     auto btn = glv::Mouse::Left;
     switch (b) {
@@ -113,7 +112,7 @@ void onCreate() {
 
   void onMouseDrag(Mouse const& m) {
     float x = m.x();
-    float y = width() - m.y();
+    float y = m.y();
     glv.setMouseMotion(x, y, glv::Event::MouseDrag);
     glv.setMousePos(x, y, x, y);
     glv.propagateEvent();
