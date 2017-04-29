@@ -207,9 +207,11 @@ public:
 
   void begin(Graphics& graphics) {
     g = &graphics;
-    fbo_.bind();
+    //fbo_.bind();
+    g->framebuffer(fbo_);
     g->shader(cubeshader_);
     g->camera(view_);
+    g->sendIndividualMatrices(true); // make M, V, P matrices individually sent as uniform
   }
 
   void set_eye(int i) {
@@ -218,13 +220,14 @@ public:
   }
 
   void set_face(int f) {
-    g->shader(cubeshader_);
     g->shader().uniform("C", get_cube_mat(f));
     fbo_.attachCubemapFace(cubemap_, GL_TEXTURE_CUBE_MAP_POSITIVE_X+f);
   }
 
   void end() {
-    fbo_.unbind();
+    g->sendIndividualMatrices(false);
+    g->framebuffer(FBO::DEFAULT);
+    //fbo_.unbind();
   }
 
   void view(Viewpoint& v) {
