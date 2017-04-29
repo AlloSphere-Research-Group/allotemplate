@@ -3,7 +3,6 @@
 #include "al/core.hpp"
 
 #include "al/glv/glv_core.h" // GLV, View
-#include "al/glv/glv_icon.h" // Icon (Check, Cross, Rectangle)
 #include "al/glv/glv_draw.h" // GraphicsData
 #include "al/glv/glv_buttons.h"
 #include "al/glv/glv_sliders.h"
@@ -39,9 +38,6 @@ GraphicsHolder& graphicsHolder() {
 	static GraphicsHolder graphicsHolder;
 	return graphicsHolder;
 }
-
-const double C_PI = 4. * atan(1.);
-const double C_2PI = 2. * C_PI;
 
 /// Returns closest pixel coordinate
 int pix(float v){ return v>=0 ? (int)(v+0.5f) : (int)(v-0.5f); }
@@ -97,8 +93,7 @@ void line(float x0, float y0, float x1, float y1)
 void grid (
 	float l, float t, float w, float h,
 	float divx, float divy,
-	bool incEnds=true
-)
+	bool incEnds=true)
 {
 	static al::VAOMesh mesh;
 	auto& gh = graphicsHolder();
@@ -132,8 +127,7 @@ void grid (
 void text (
 	const char * s,
 	float l=0, float t=0,
-	unsigned fontSize=8, float lineSpacing=1.5, unsigned tabSpaces=4
-)
+	unsigned fontSize=8, float lineSpacing=1.5, unsigned tabSpaces=4)
 {
 	Font f;
 	f.size(fontSize);
@@ -143,8 +137,7 @@ void text (
 }
 
 void drawContext (
-	float tx, float ty, View * v, float& cx, float& cy, View *& c
-)
+	float tx, float ty, View * v, float& cx, float& cy, View *& c)
 {
 	auto& gh = graphicsHolder();
 	auto& g = gh.get();
@@ -158,8 +151,7 @@ void drawContext (
 }
 
 void computeCrop(
-	std::vector<Rect>& cr, int lvl, space_t ax, space_t ay, View * v
-)
+	std::vector<Rect>& cr, int lvl, space_t ax, space_t ay, View * v)
 {
 	if (v->enabled(CropChildren)) {
 		cr[lvl].set(ax, ay, v->w, v->h);	// set absolute rect
@@ -303,31 +295,50 @@ void View::doDraw(GLV& glv){
 	}
 
 	if(enabled(DrawBorder)){
-		float borderWidth = 1.0;
+		// float borderWidth = 1.0;
 
 		// double border thickness if focused
-		if(enabled(Focused) && enabled(FocusHighlight)){
-			borderWidth *= 2;
-		}
+		// if(enabled(Focused) && enabled(FocusHighlight)){
+		// 	borderWidth *= 2;
+		// }
 
 		// g.lineWidth(borderWidth); // disabled in >gl3
-		glv::Color colborder = colors().border;
-		g.uniformColor(colborder.r, colborder.g, colborder.b, colborder.a);
+		auto const& cb = colors().border;
+		g.uniformColor(cb.r, cb.g, cb.b, cb.a);
+		// 1.0 and 0.5: it's hack anyway
 		frame(1.0, 1.0, pix(w)-0.5, pix(h)-0.5);
-		frame(0.5, 0.5, pix(w), pix(h));
+		// frame(1.5, 1.5, pix(w)-1.0, pix(h)-1.0);
 		// const float ds = 0.5; // OpenGL suggests 0.375, but smears with AA enabled
 		// frame(ds, ds, pix(w)-ds, pix(h)-ds);
 		// frame(0,0, pix(w)-ds, pix(h)-ds); // hack to give bevelled look
+
 	}
 }
 
-void Widget::drawGrid(GraphicsData& g){
+void Widget::drawGrid(){
+	if(enabled(DrawGrid) && size()>1){
+		auto& g = graphicsHolder().get();
+		// g.lineWidth(1); // disabled in >gl3
+		auto const& cb = colors().border;
+		g.uniformColor(cb.r, cb.g, cb.b, cb.a);
+		grid(0, 0, w, h, sizeX(), sizeY(), false);
+	}
 }
 
 void Widget::drawSelectionBox(){
+	if(enabled(Focused) && enabled(DrawSelectionBox) && size()>1){
+		auto& g = graphicsHolder().get();
+		g.lineWidth(2);
+		auto const& cb = colors().border;
+		g.uniformColor(cb.r, cb.g, cb.b, cb.a);
+		frame(sx*dx(), sy*dy(), (sx+1)*dx(), (sy+1)*dy());
+	}
 }
 
 void Widget::onDraw(GLV& g){
+	drawSelectionBox();
+	drawGrid();
+	// g.graphicsData().reset();
 }
 
 void Sliders::onDraw(GLV& glv) {
@@ -346,32 +357,21 @@ void Sliders::onDraw(GLV& glv) {
 		
 			for(int j=0; j<sizeY(); ++j){
 				int ind = index(i,j);
-				if(isSelected(i,j)) g.uniformColor(
-					colors().fore.r,
-					colors().fore.g,
-					colors().fore.b
-				);
-				else g.uniformColor(
-					colors().fore.r,
-					colors().fore.g,
-					colors().fore.b,
-					colors().fore.a*0.5f
-				);
+				auto const& cf = colors().fore;
+				if(isSelected(i,j)) g.uniformColor(cf.r, cf.g, cf.b, cf.a);
+				else                g.uniformColor(cf.r, cf.g, cf.b, cf.a * 0.5);
 
 				float v01 = to01(getValue(ind));
 				//float y0 = to01(0)*(yd - paddingY()*2);
 				float y0 = to01(0)*yd;
 				//rect(x + x0, y, f*xd+x, y+yd-padding());
 				
-				rectangle(x, y + (yd-v01*yd), x+xd-paddingX()*2, y + (yd-y0));
+				rectangle(x, y + (yd-v01*(yd-paddingY()*2)), x+xd-paddingX()*2, y + (yd-y0));
 
 				// if zero line showing
 				if(max()>0 && min()<0){
-					g.uniformColor(
-						colors().border.r,
-						colors().border.g,
-						colors().border.b
-					);
+					auto const& cb = colors().border;
+					g.uniformColor(cb.r, cb.g, cb.b);
 					float linePos = pixc(y+yd-y0);
 					line(x, linePos, x+xd, linePos);
 				}
@@ -387,29 +387,18 @@ void Sliders::onDraw(GLV& glv) {
 		
 			for(int j=0; j<sizeY(); ++j){
 				int ind = index(i,j);
-				if(isSelected(i,j)) g.uniformColor(
-					colors().fore.r,
-					colors().fore.g,
-					colors().fore.b
-				);
-				else g.uniformColor(
-					colors().fore.r,
-					colors().fore.g,
-					colors().fore.b,
-					colors().fore.a*0.5f
-				);
+				auto const& cf = colors().fore;
+				if(isSelected(i,j)) g.uniformColor(cf.r, cf.g, cf.b, cf.a);
+				else                g.uniformColor(cf.r, cf.g, cf.b, cf.a * 0.5);
 
 				float v01 = to01(getValue(ind));
 				float x0 = to01(0)*xd;
-				rectangle(x + x0, y, v01*xd+x, y+yd-paddingY()*2);
+				rectangle(x + x0, y, v01*(xd-paddingX()*2)+x, y+yd-paddingY()*2);
 
 				// if zero line showing
 				if(max()>0 && min()<0){
-					g.uniformColor(
-						colors().border.r,
-						colors().border.g,
-						colors().border.b
-					);
+					auto const& cb = colors().border;
+					g.uniformColor(cb.r, cb.g, cb.b);
 					float linePos = pixc(x+x0);
 					line(linePos, y, linePos, y+yd);
 				}
@@ -432,22 +421,47 @@ void Slider2D::onDraw(GLV& g) {
 
 }
 
+void Label::onDraw(GLV& g){
+	// lineWidth(stroke());
+	// color(colors().text);
+	// if(mVertical){ translate(0,h); rotate(0,0,-90); }
+	// font().render(
+	// 	g.graphicsData(),
+	// 	data().toString().c_str(),
+	// 	paddingX(),
+	// 	paddingY()
+	// );
+	//scale(mSize, mSize);
+	//text(value().c_str());
+}
 
+
+
+void NumberDialers::fitExtent(){
+
+}
+
+
+void NumberDialers::onDraw(GLV& g){
+
+}
+
+void DropDown::onDraw(GLV& g){
+}
+
+ListView& ListView::fitExtent(){
+}
+
+
+void ListView::onDraw(GLV& g){
+}
+
+void TextView::onDraw(GLV& g){
+
+}
 
 // -----------------------------------------------------------------------------
 #ifdef DONT_COMMENT_OUT
-
-void Check::draw(float l, float t, float r, float b){
-	shape(LineStrip, l,0.5f*(t+b), l+(r-l)*0.3f,b, r,t);
-};
-
-void Cross::draw(float l, float t, float r, float b){
-	shape(Lines, l,t, r,b, l,b, r,t);
-};
-
-void Rectangle::draw(float l, float t, float r, float b){
-	shape(TriangleStrip, l,t, l,b, r,t, r,b);
-};
 
 void Buttons::onDraw(GLV& g){
 	Widget::onDraw(g);
@@ -460,26 +474,26 @@ void Buttons::onDraw(GLV& g){
 	float pady = paddingY();
 	color(colors().fore);
 	
-	// TODO: small buttons hard to see when not antialiased
-	//glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
-	//enable(PolygonSmooth);
-	
 	stroke(1);
 
-	for(int i=0; i<sizeX(); ++i){
+	for (int i=0; i<sizeX(); ++i) {
 		float x = xd*i + padx;
-
-		for(int j=0; j<sizeY(); ++j){
+		for (int j=0; j<sizeY(); ++j) {
 			float y = yd*j + pady;
-			if(getValue(i,j)){	if(mSymOn ) mSymOn (x, y, x+xd-padx*2, y+yd-pady*2); }
-			else{				if(mSymOff) mSymOff(x, y, x+xd-padx*2, y+yd-pady*2); }
+			if (getValue(i,j)) {
+				// on
+				if(mSymOn ) mSymOn (x, y, x+xd-padx*2, y+yd-pady*2);
+			}
+			else {
+				// off
+				if(mSymOff) mSymOff(x, y, x+xd-padx*2, y+yd-pady*2);
+			}
 		}		
 	}
 	
-	//disable(PolygonSmooth);
 }
 
-void Slider2D::onDraw(GLV& g){
+void Slider2D::onDraw(GLV& g) {
 
 	if(!g.mouse().isDown() && enabled(Momentary)) setValueMid();
 
@@ -537,41 +551,6 @@ void SliderRange::onDraw(GLV& g){
 	}
 }
 
-
-
-
-void Font::render(GraphicsData& gd, const char * v, float x, float y, float z) const{
-	using namespace glv::draw;
-
-	gd.reset();
-
-	float sx = mScaleX;
-	float sy = mScaleY;
-	float tx = x;
-	float ty = y;
-	//float tz = z;
-	//float sh = -0.5*sy; // TODO: shear needs to be done an a per-line basis
-	//float sh = 0;
-	
-	//tx=ty=tz=0;
-
-	struct RenderText : public TextIterator{
-		RenderText(const Font& f_, const char *& s_, GraphicsData& g_, float tx_, float ty_, float sx_, float sy_)
-		: TextIterator(f_,s_), g(g_), tx(tx_), ty(ty_), sx(sx_), sy(sy_){}
-		bool onPrintable(char c){
-			return addCharacter(g, c, pixc(tx+x*sx), pixc(ty+y*sy), sx, sy);
-		}
-		GraphicsData& g;
-		float tx,ty,sx,sy;
-	} renderText(*this, v, gd, tx,ty,sx,sy);
-
-	renderText.run();
-	
-	paint(Lines, gd);
-}
-
-
-
 void Divider::onDraw(GLV& g){
 	using namespace glv::draw;
 	if(mStrokeWidth <= 0) return;
@@ -608,221 +587,9 @@ void Table::onDraw(GLV& g){
 	}
 }
 
-void Label::onDraw(GLV& g){
-	using namespace glv::draw;
-	lineWidth(stroke());
-	color(colors().text);
-	if(mVertical){ translate(0,h); rotate(0,0,-90); }
-	font().render(
-		g.graphicsData(),
-		data().toString().c_str(),
-		paddingX(),
-		paddingY()
-	);
-	//scale(mSize, mSize);
-	//text(value().c_str());
-}
 
 
-void TextView::onDraw(GLV& g){
-	using namespace draw;
 
-	float padX = paddingX();
-	float padY = paddingY();
-	float addY =-4;//was -2		// subtraction from top since some letters go above cap
-
-	float tl = mPos * font().advance('M') + padX;
-//	float tr = tl + font().advance('M');
-	float tt = addY + padY;
-	float tb = tt + fabs(font().descent()+font().cap()) - addY;
-	float strokeWidth = 1;
-	
-	// draw selection
-	if(textSelected()){
-		float sl, sr;
-		if(mSel>0){
-			sl = tl;
-			sr = sl + mSel*font().advance('M');
-		}
-		else{
-			sr = tl;
-			sl = sr + mSel*font().advance('M');
-		}
-		color(colors().selection);
-		rectangle(sl, tt, sr, tb);
-	}
-
-	// draw cursor
-	if(mBlink<0.5 && enabled(Focused)){
-		stroke(1);
-		color(colors().text);
-		shape(Lines, pixc(tl), tt, pixc(tl), tb);
-	}
-
-	lineWidth(strokeWidth);
-	color(colors().text);
-//	font().render(mText.c_str(), pixc(padX), pixc(padY-1));
-	font().render(g.graphicsData(), mText.c_str(), padX, padY-1);
-}
-
-
-ListView& ListView::fitExtent(){
-	float maxw = 0;//, maxh = 0;
-	int nitems = data().size();
-
-	for(int i=0; i<nitems; ++i){
-		float x = font().advance(data().at<std::string>(i).c_str());
-		if(x > maxw) maxw = x;
-	}
-	extent(
-		pix(data().size(0) * (maxw + paddingX()*2)),
-		pix(data().size(1) * (font().cap() + font().descent() + paddingY()*2))
-	);
-	return *this;
-}
-
-
-void ListView::onDraw(GLV& g){
-
-	using namespace glv::draw;
-
-	Indexer idx(data().size(0), data().size(1));
-	float dx_ = dx(0);
-	float dy_ = dy(1);
-	
-	while(idx()){
-		int ix = idx[0];
-		int iy = idx[1];
-		
-		float px = dx_ * ix;
-		float py = dy_ * iy;
-
-		if(selectedX() == ix && selectedY() == iy){
-			color(colors().selection);
-			rectangle(px,py, px+dx_,py+dy_);
-		}
-		
-		color(colors().text);
-		lineWidth(1);
-		
-		//font().render(data().at<std::string>(ix,iy).c_str(), pixc(px+paddingX()), pixc(py+paddingY()));
-		font().render(g.graphicsData(), data().at<std::string>(ix,iy).c_str(), px+paddingX(), py+paddingY());
-	}
-	
-	Widget::onDraw(g);
-}
-
-
-void DropDown::onDraw(GLV& g){
-	mBlink = 0.9;
-	TextView::onDraw(g);
-	
-	color(colors().fore);
-	float ds = 3;
-	// triangleD(w - h + ds, ds, w-ds, h-ds);
-}
-
-
-void NumberDialers::fitExtent(){
-	extent(
-		pix(sizeX() * (paddingX()*2 + (numDigits() * font().advance('M'))) + 1),
-		pix(sizeY() * (paddingY()*2 + font().cap()) + 1)
-	);
-//	print();
-}
-
-
-void NumberDialers::onDraw(GLV& g){ //printf("% g\n", value());
-	using namespace glv::draw;
-
-	fitExtent();
-
-	float dxCell= dx();
-	float dyCell= dy();
-	float dxDig = font().advance('M');
-
-//	View::enable(DrawSelectionBox);
-//	View::enable(DrawGrid);
-
-	// draw box at position (only if focused)
-	if(enabled(Focused)){
-
-		float x = dxCell*selectedX() + paddingX()/1 - 1;
-		//float y = dyCell*selectedY() + paddingY()/2;
-		float y = dyCell*(selectedY()+0.5);
-		float ty= font().cap()/2. + 3;
-
-//		color(colors().fore, colors().fore.a*0.4);
-		color(colors().selection);
-		//rectangle(bx + dig()*dxDig, by, bx + (dig()+1)*dxDig, by + dyCell-0.5f);
-		rectangle(x + dig()*dxDig, y-ty, x + (dig()+1)*dxDig, y+ty);
-	}
-
-	drawSelectionBox();
-	drawGrid(g.graphicsData());
-
-	lineWidth(1);
-
-	if(mTextEntryMode){
-		mTextEntry.extent(dxCell, dyCell);
-		mTextEntry.pos(dxCell*selectedX(), dyCell*selectedY());
-	}
-
-	for(int i=0; i<sizeX(); ++i){
-		for(int j=0; j<sizeY(); ++j){
-
-			float cx = dxCell*i;	// left edge of cell
-			float cy = dyCell*j;	// top edge of cell
-
-			// draw number
-			long long vali = valInt(i,j);
-			unsigned long absVal = vali < 0 ? -vali : vali;
-			int msd = mNF;	// position from right of most significant digit
-
-			if(absVal > 0){
-				msd = (int)log10((double)absVal);
-				int p = numDigits() - (mShowSign ? 2:1);
-				msd = msd < mNF ? mNF : (msd > p ? p : msd);
-			}
-
-			if(mNI == 0) msd-=1;
-
-			// Determine digit string
-			char str[32];
-			int ic = numDigits();
-			str[ic] = '\0';
-			for(int i=0; i<numDigits(); ++i) str[i]=' ';
-
-			if(mShowSign && vali < 0) str[0] = '-';
-
-			unsigned long long power = 1;
-			bool drawChar = false; // don't draw until non-zero or past decimal point
-
-			for(int i=0; i<=msd; ++i){
-				char c = '0' + (absVal % (power*10))/power;
-				power *= 10;
-				if(c!='0' || i>=mNF) drawChar = true;
-				--ic;
-				if(drawChar) str[ic] = c;
-			}
-
-			// Draw the digit string
-			float tx = int(cx + paddingX());
-			float ty = int(cy + paddingY());
-
-			if(vali || !dimZero()){
-				color(colors().text);
-			} else {
-				color(colors().text.mix(colors().back, 0.8));
-			}
-		//	printf("%s\n", str);
-//			font().render(g.graphicsData(), str, pixc(tx), pixc(ty));
-//			if(mNF>0) font().render(g.graphicsData(), ".", pixc(dxDig*(mNI+numSignDigits()-0.5f) + tx), pixc(ty));
-			font().render(g.graphicsData(), str, tx, ty);
-			if(mNF>0) font().render(g.graphicsData(), ".", dxDig*(mNI+numSignDigits()-0.5f) + tx, ty);
-		}
-	}
-}
 
 void Scroll::onDraw(GLV& g){
 

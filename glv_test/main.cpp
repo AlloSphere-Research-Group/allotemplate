@@ -14,26 +14,53 @@
 using namespace al;
 using namespace std;
 
+const int numSliders = 4;
+
+void ntSetLabel(const glv::Notification& n){
+  glv::Label * l = n.receiver<glv::Label>();
+  glv::Sliders& s = *n.sender<glv::Sliders>();
+  
+  // Get currently selected slider
+  int idx = s.selected();
+  
+  // Set string of corresponding label to slider value
+  l[idx].setValue(glv::toString(s.getValue(idx)));
+}
+
 class MyApp : public App {
 public:
   ShaderProgram shader;
   Graphics g {*this};
   double delta_t;
   glv::GLV glv;
-  glv::Slider sl1 {glv::Rect(120,20,301,31)};
-  glv::Slider sl2 {glv::Rect(120,60,200,50)};
-  float var = 1; // !!!
+  // glv::Slider sl1 {glv::Rect(120,20,301,31)};
+  // glv::Slider sl2 {glv::Rect(120,60,200,50)};
+  // float var = 1; // !!!
+
+  glv::Sliders sliders{glv::Rect{200,80}, 1, numSliders};
+  glv::Label labels[numSliders];
 
 void onCreate() {
     shader.compile(al_default_vert_shader(), al_default_frag_shader());
     
-    auto show = [](auto const& a) { std::cout << a << std::endl; };
+    // sl1.attachVariable(var);
+    // sl2.attachVariable(var);
     
-    
-    sl1.attachVariable(var);
-    sl2.attachVariable(var);
-    
-    glv << sl1 << sl2;
+    // glv << sl1 << sl2;
+
+    for(int i=0; i<numSliders; ++i){
+      labels[i].pos(2,4);
+      
+      // Set anchor factor so labels lie on top of each slider
+      labels[i].anchor(0, float(i)/numSliders);
+
+      sliders << labels[i];
+    }
+
+    sliders.attach(ntSetLabel, glv::Update::Value, labels);
+    sliders.colors().set(glv::StyleColor::SmokyGray);
+
+    glv << sliders;
   }
 
   void onAnimate(double dt) {
