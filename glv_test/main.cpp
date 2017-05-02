@@ -33,9 +33,9 @@ public:
   Graphics g {*this};
   double delta_t;
   glv::GLV glv;
-  // glv::Slider sl1 {glv::Rect(120,20,301,31)};
-  // glv::Slider sl2 {glv::Rect(120,60,200,50)};
-  // float var = 1; // !!!
+   glv::Slider sl1 {glv::Rect(120,20,301,31)};
+   glv::Slider sl2 {glv::Rect(120,60,200,50)};
+   float var = 1; // !!!
 
   glv::Sliders sliders{glv::Rect{200,80}, 1, numSliders};
   glv::Label labels[numSliders];
@@ -43,10 +43,10 @@ public:
 void onCreate() {
     shader.compile(al_default_vert_shader(), al_default_frag_shader());
     
-    // sl1.attachVariable(var);
-    // sl2.attachVariable(var);
+     sl1.attachVariable(var);
+     sl2.attachVariable(var);
     
-    // glv << sl1 << sl2;
+     glv << sl1 << sl2;
 
     for(int i=0; i<numSliders; ++i){
       labels[i].pos(2,4);

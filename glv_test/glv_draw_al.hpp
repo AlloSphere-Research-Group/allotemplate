@@ -450,6 +450,7 @@ void DropDown::onDraw(GLV& g){
 }
 
 ListView& ListView::fitExtent(){
+    return ListView {};
 }
 
 
