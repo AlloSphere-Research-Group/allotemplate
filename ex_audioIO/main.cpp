@@ -23,7 +23,7 @@ public:
   void onSound(AudioIOData& io) {
     static double phase {0};
     // Set the base frequency to 55 Hz
-    double freq = 55/io.framesPerSecond();
+    double freq = 440/io.framesPerSecond();
 
     while(io()){
       // Update the oscillators' phase
@@ -31,7 +31,7 @@ public:
       if(phase > 1) phase -= 1;
 
       // Generate two sine waves at the 5th and 4th harmonics
-      float out = 0.3 * cos(5*phase * 2*M_PI);
+      float out = 0.3 * cos(phase * 2*M_PI);
 
       // Send scaled waveforms to output...
       io.out(0) = out;
@@ -43,7 +43,10 @@ public:
 
 int main() {
   MyApp app;
-  app.initAudio();
+  // app.initAudio();  is same as app.initAudio(AudioApp::OUT_ONLY);
+  app.initAudio(AudioApp::OUT_ONLY); // IN_ONLY, IN_AND_OUT
+  // or
+  // app.initAudio(44100, 256, 2, 0); // samplingRate, bufferSize, outChannel, inChannel
   app.start(); // blocks
   return 0;
 }
