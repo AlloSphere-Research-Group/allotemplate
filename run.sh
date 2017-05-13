@@ -35,11 +35,12 @@ echo "BUILD TYPE: ${BUILD_TYPE}"
 echo " "
 echo "___ building al_lib __________"
 echo " "
+cd al_lib
 mkdir -p build
 cd build
-mkdir -p "al_lib_build_${BUILD_TYPE}"
-cd "al_lib_build_${BUILD_TYPE}"
-cmake ../../al_lib/ -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
+mkdir -p "${BUILD_TYPE}"
+cd "${BUILD_TYPE}"
+cmake ../.. -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
 make
 LIB_BUILD_RESULT=$?
 # if lib failed to build, exit
