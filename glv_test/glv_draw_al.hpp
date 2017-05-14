@@ -20,17 +20,11 @@ namespace glv {
 
 struct GraphicsHolder {
 	al::Graphics* mGraphics;
-	float w;
-	float h;
 	void set(al::Graphics& g) {
 		mGraphics = &g;
-	} 
+	}
 	al::Graphics& get() {
 		return *mGraphics;
-	}
-	void size(float width, float height) {
-		w = width;
-		h = height;
 	}
 };
 
@@ -40,31 +34,33 @@ GraphicsHolder& graphicsHolder() {
 }
 
 /// Returns closest pixel coordinate
-int pix(float v){ return v>=0 ? (int)(v+0.5f) : (int)(v-0.5f); }
+int pix(float v) {
+    return v >= 0 ? (int)(v+0.5f) : (int)(v-0.5f);
+}
 /// Returns center of closest pixel coordinate
-float pixc(float v){ return pix(v) + 0.5f; }
+float pixc(float v) {
+    return pix(v) + 0.5f;
+}
 
-void rectangle(float l, float t, float r, float b)
-{
+void rectangle(float l, float t, float r, float b) {
 	static al::VAOMesh mesh;
-	auto& gh = graphicsHolder();
 
 	float x = l;
-	float y = gh.h - b;
+    float y = t;
 	float w = r - l;
 	float h = b - t;
 	mesh.reset();
 	addRect(mesh, x, y, w, h);
 	mesh.update();
-	gh.get().draw(mesh);
+
+    graphicsHolder().get().draw(mesh);
 }
 
-void frame(float l, float t, float r, float b)
-{
+void frame(float l, float t, float r, float b) {
 	static al::VAOMesh mesh;
-	auto& gh = graphicsHolder();
+
 	float x = l;
-	float y = gh.h - b;
+    float y = t;
 	float w = r - l;
 	float h = b - t;
 	mesh.reset();
@@ -75,52 +71,36 @@ void frame(float l, float t, float r, float b)
 	mesh.vertex(x, y + h);
 	mesh.vertex(x, y);
 	mesh.update();
-	gh.get().draw(mesh);
+
+    graphicsHolder().get().draw(mesh);
 }
 
-void line(float x0, float y0, float x1, float y1)
-{
+void line(float x0, float y0, float x1, float y1) {
 	static al::VAOMesh mesh;
-	auto& gh = graphicsHolder();
+
 	mesh.reset();
 	mesh.primitive(al::Mesh::LINES);
-	mesh.vertex(x0, gh.h - y0);
-	mesh.vertex(x1, gh.h - y1);
+    mesh.vertex(x0, y0);
+    mesh.vertex(x1, y1);
 	mesh.update();
-	gh.get().draw(mesh);
+
+    graphicsHolder().get().draw(mesh);
 }
 
 void lines(GraphicsData& gd) {
 	static al::EasyVAO vao;
 	vao.primitive(GL_LINES);
-	static bool once = true;
-	if (once && (gd.vertices3().size() != 0 || gd.vertices2().size() != 0)) {
-		std::cout << "printing 3, size: " << gd.vertices3().size() << std::endl;
-		// for (auto const& v : gd.vertices3()) {
-		for (int i = 0; i < gd.vertices3().size(); i += 1) {
-			auto const& v = gd.vertices3()[i];
-			std::cout << v.x << ", " << v.y << ", " << v.z << std::endl;
-		}
-
-		std::cout << "printing 2, size: " << gd.vertices2().size() << std::endl;
-		// for (auto const& v : gd.vertices3()) {
-		for (int i = 0; i < gd.vertices2().size(); i += 1) {
-			auto const& v = gd.vertices2()[i];
-			std::cout << v.x << ", " << v.y << std::endl;
-		}
-		once = false;
-	}
-	vao.updatePosition(reinterpret_cast<float*>(gd.vertices3().data()), gd.vertices3().size());
+	vao.updatePosition(gd.vertices3().data(), gd.vertices3().size());
 	graphicsHolder().get().draw(vao);
 }
 
 void grid (
 	float l, float t, float w, float h,
 	float divx, float divy,
-	bool incEnds=true)
-{
+	bool incEnds=true
+) {
 	static al::VAOMesh mesh;
-	auto& gh = graphicsHolder();
+
 	mesh.reset();
 	mesh.primitive(al::Mesh::LINES);
 	double inc, r=l+w, b=t+h;
@@ -130,8 +110,8 @@ void grid (
 		double i = incEnds ? t-0.0001 : t-0.0001+inc;
 		double e = incEnds ? b : b-inc;
 		for(; i<e; i+=inc) {
-			mesh.vertex(l, gh.h - i);
-			mesh.vertex(r, gh.h - i);
+            mesh.vertex(l, i);
+            mesh.vertex(r, i);
 		}
 	}
 
@@ -140,12 +120,19 @@ void grid (
 		double i = incEnds ? l-0.0001 : l-0.0001+inc;
 		double e = incEnds ? r : r-inc;
 		for(; i<e; i+=inc) {
-			mesh.vertex(i, gh.h - t);
-			mesh.vertex(i, gh.h - b);
+            mesh.vertex(i, t);
+            mesh.vertex(i, b);
 		}
 	}
 	mesh.update();
-	gh.get().draw(mesh);
+    graphicsHolder().get().draw(mesh);
+}
+
+void pushMatrix() {
+    graphicsHolder().get().pushMatrix();
+}
+void popMatrix() {
+    graphicsHolder().get().popMatrix();
 }
 
 void loadIdentity() {
@@ -158,6 +145,10 @@ void translate(float x, float y) {
 
 void rotate(float angleX, float angleY, float angleZ) {
 	graphicsHolder().get().rotate(angleX, angleY, angleZ);
+}
+
+void scale(float scaleX, float scaleY) {
+    graphicsHolder().get().scale(scaleX, scaleY);
 }
 
 void scissorTest(bool doScissor) {
@@ -187,8 +178,8 @@ void color(Color const& c) {
 void text(
 	const char * s,
 	float l=0, float t=0,
-	unsigned fontSize=8, float lineSpacing=1.5, unsigned tabSpaces=4)
-{
+	unsigned fontSize=8, float lineSpacing=1.5, unsigned tabSpaces=4
+) {
 	Font f;
 	f.size(fontSize);
 	f.lineSpacing(lineSpacing);
@@ -198,11 +189,15 @@ void text(
 
 void drawContext (float tx, float ty, View * v, float& cx, float& cy, View *& c) {
 	cx += tx; cy += ty; // update absolute coordinates of drawing context
-	loadIdentity(); // clear model matrix (assumed set already)
+
+	//loadIdentity(); // clear model matrix (assumed set already)
+    // clear model matrix (assumed set already)
+    // pop then push preserves previous matrix (the one before pushing)
+    popMatrix();
+    pushMatrix();
+
 	// pix: round position to nearest pixel coordinates
-	// (-) on y: glv has origin at top left,
-	// but al_lib 2D camera has it at bottom left
-	translate(pix(cx), -pix(cy));
+	translate(pix(cx), pix(cy));
 	c = v;
 }
 
@@ -257,13 +252,14 @@ void GLV::drawWidgets(unsigned int ww, unsigned int wh, double dsec) {
 	graphicsData().reset();
 	doDraw(*this);
 
-	scissorTest(true);
+	//scissorTest(true);
 
 	while(true){
 
-		cv->onDataModelSync();		// update state based on attached model variables
+		cv->onDataModelSync(); // update state based on attached model variables
 		cv->rectifyGeometry();
 
+        pushMatrix();
 		// find the next view to draw
 
 		// go to child node if exists and I'm drawable
@@ -271,15 +267,11 @@ void GLV::drawWidgets(unsigned int ww, unsigned int wh, double dsec) {
 			drawContext(cv->child->l, cv->child->t, cv->child, cx, cy, cv);
 			computeCrop(cropRects, ++lvl, cx, cy, cv);
 		}
-
-		// go to sibling node if exists
-		else if(cv->sibling){
+		else if(cv->sibling){ // go to sibling node if exists
 			drawContext(cv->sibling->l - cv->l, cv->sibling->t - cv->t, cv->sibling, cx, cy, cv);
 			computeCrop(cropRects, lvl, cx, cy, cv);
 		}
-
-		// retrace upwards until a parent's sibling is found
-		else{
+		else{ // retrace upwards until a parent's sibling is found
 			while(cv != root && cv->sibling == 0){
 				drawContext(-cv->l, -cv->t, cv->parent, cx, cy, cv);
 				lvl--;
@@ -300,27 +292,28 @@ void GLV::drawWidgets(unsigned int ww, unsigned int wh, double dsec) {
 			// bypass if drawing area outside of crop region
 			if(r.h<=0.f || r.w <= 0.f) continue;
 
-			// scissor coord has origin at bottom left
 			int sx = pix(r.l);
-			int sy = wh - (pix(r.t) + pix(r.h)) + 0.99;
+			int sy = wh - (pix(r.t) + pix(r.h)) + 0.99; // scissor coord has origin at bottom left
 			int sw = pix(r.w);
 			int sh = r.h + 0.5;
 			if(sy < 0) sy=0;
 
 			// glScissor takes size in framebuffer dimension
-			scissor(
-				sx * windowHighresFactorX(),
-				sy * windowHighresFactorY(),
-				sw * windowHighresFactorX(),
-				sh * windowHighresFactorY()
-			);
+			//scissor(
+			//	sx * windowHighresFactorX(),
+			//	sy * windowHighresFactorY(),
+			//	sw * windowHighresFactorX(),
+			//	sh * windowHighresFactorY()
+			//);
 
 			graphicsData().reset();
 			cv->doDraw(*this);
 		}
+
+        popMatrix();
 	}
 
-	scissorTest(false);
+	//scissorTest(false);
 }
 
 void View::doDraw(GLV& glv){
@@ -451,7 +444,7 @@ void Sliders::onDraw(GLV& glv) {
 }
 
 void Font::render(GraphicsData& gd, const char * v, float x, float y, float z) const {
-	static bool print_once = [](){ std::cout << "Font::render" << std::endl; return true; }();
+	//static bool print_once = [](){ std::cout << "Font::render" << std::endl; return true; }();
 
 	gd.reset();
 
@@ -482,12 +475,12 @@ void Font::render(GraphicsData& gd, const char * v, float x, float y, float z) c
 }
 
 void SliderRange::onDraw(GLV& g) {
-	static bool print_once = [](){ std::cout << "SliderRange::onDraw" << std::endl; return true; }();
+	//static bool print_once = [](){ std::cout << "SliderRange::onDraw" << std::endl; return true; }();
 
 }
 
 void Slider2D::onDraw(GLV& g) {
-	static bool print_once = [](){ std::cout << "Slider2D::onDraw" << std::endl; return true; }();
+	//static bool print_once = [](){ std::cout << "Slider2D::onDraw" << std::endl; return true; }();
 
 }
 
@@ -495,7 +488,10 @@ void Label::onDraw(GLV& g){
 	// static bool print_once = [](){ std::cout << "Label::onDraw" << std::endl; return true; }();
 	// lineWidth(stroke()); 
 	color(colors().text);
-	if(mVertical){ translate(0,h); rotate(0,0,-90); }
+	if(mVertical){
+        translate(0,h);
+        rotate(0,0,-90);
+    }
 	font().render(
 		g.graphicsData(),
 		data().toString().c_str(),
@@ -508,33 +504,33 @@ void Label::onDraw(GLV& g){
 
 
 
-void NumberDialers::fitExtent(){
-	static bool print_once = [](){ std::cout << "NumberDialers::fitExtent" << std::endl; return true; }();
+void NumberDialers::fitExtent() {
+	//static bool print_once = [](){ std::cout << "NumberDialers::fitExtent" << std::endl; return true; }();
 
 }
 
 
-void NumberDialers::onDraw(GLV& g){
-	static bool print_once = [](){ std::cout << "NumberDialers::onDraw" << std::endl; return true; }();
+void NumberDialers::onDraw(GLV& g) {
+	//static bool print_once = [](){ std::cout << "NumberDialers::onDraw" << std::endl; return true; }();
 
 }
 
 void DropDown::onDraw(GLV& g){
-	static bool print_once = [](){ std::cout << "DropDown::onDraw" << std::endl; return true; }();
+	//static bool print_once = [](){ std::cout << "DropDown::onDraw" << std::endl; return true; }();
 }
 
 ListView& ListView::fitExtent(){
-	static bool print_once = [](){ std::cout << "ListView::fitExtent" << std::endl; return true; }();
+	//static bool print_once = [](){ std::cout << "ListView::fitExtent" << std::endl; return true; }();
     return *this;
 }
 
 
 void ListView::onDraw(GLV& g){
-	static bool print_once = [](){ std::cout << "ListView::onDraw" << std::endl; return true; }();
+	//static bool print_once = [](){ std::cout << "ListView::onDraw" << std::endl; return true; }();
 }
 
 void TextView::onDraw(GLV& g){
-	static bool print_once = [](){ std::cout << "TextView::onDraw" << std::endl; return true; }();
+	//static bool print_once = [](){ std::cout << "TextView::onDraw" << std::endl; return true; }();
 }
 
 // -----------------------------------------------------------------------------
@@ -746,8 +742,7 @@ void Scroll::onDraw(GLV& g){
 void al_draw_glv(
 	glv::GLV& glv, al::Graphics& g,
 	unsigned x, unsigned y, unsigned w, unsigned h, double dsec
-)
-{
+) {
 	// g.lighting(false);
 	g.depthTesting(false);
 	g.blending(true);
@@ -764,15 +759,14 @@ void al_draw_glv(
 	);
 
 	glv::graphicsHolder().set(g);
-	glv::graphicsHolder().size(w, h);
+	//glv::graphicsHolder().size(w, h);
 
 	g.pushMatrix();
+    g.loadIdentity();
+    g.translate(0, g.window().height()); // move to top-right
+    g.scale(1, -1); // flip y
 	glv.drawWidgets(w, h, dsec);
 	g.popMatrix();
-
-	// g.uniformColor(1, 0, 0);
-	// glv::frame(10, 10, 50, 50);
-	// // glv::rectangle(10, 10, 50, 50);
 }
 
 void al_draw_glv(glv::GLV& glv, al::Graphics& g, double dsec) {

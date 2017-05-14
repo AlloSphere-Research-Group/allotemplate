@@ -33,8 +33,8 @@ public:
   Graphics g {*this};
   double delta_t;
   glv::GLV glv;
-   glv::Slider sl1 {glv::Rect(120,20,301,31)};
-   glv::Slider sl2 {glv::Rect(120,60,200,50)};
+   glv::Slider sl1 {glv::Rect(150,150,300,30)};
+   glv::Slider sl2 {glv::Rect(200,200,200,50)};
    float var = 1; // !!!
 
   glv::Sliders sliders{glv::Rect{200,80}, 1, numSliders};
@@ -61,6 +61,10 @@ void onCreate() {
     sliders.colors().set(glv::StyleColor::SmokyGray);
 
     glv << sliders;
+    sliders.setValue(0.2, 0);
+    sliders.setValue(0.3, 1);
+    sliders.setValue(0.4, 2);
+    sliders.setValue(0.5, 3);
   }
 
   void onAnimate(double dt) {
