@@ -36,6 +36,7 @@ public:
         pos[1] = vec3(200, 50, 0);
         pos[2] = vec3(50, 100, 0);
 
+        vao.primitive(GL_LINE_STRIP);
         vao.updatePosition(pos, 3);
 
         mesh.primitive(Mesh::TRIANGLES);
@@ -59,15 +60,14 @@ public:
         g.uniformColor(1, 0.5, 0.2);
         g.uniformColorMix(1);
         g.update();
-        if (flag)
-        {
-            vao.draw();
+        if (flag) {
+            g.draw(vao);
+            // vao.draw();
         }
-        else
-        {
-            mesh.draw();
+        else {
+            g.draw(mesh);
+            // mesh.draw();
         }
-        //g.draw(mesh);
     }
 
     void onKeyDown(Keyboard const& k)

@@ -90,6 +90,30 @@ void line(float x0, float y0, float x1, float y1)
 	gh.get().draw(mesh);
 }
 
+void lines(GraphicsData& gd) {
+	static al::EasyVAO vao;
+	vao.primitive(GL_LINES);
+	static bool once = true;
+	if (once && (gd.vertices3().size() != 0 || gd.vertices2().size() != 0)) {
+		std::cout << "printing 3, size: " << gd.vertices3().size() << std::endl;
+		// for (auto const& v : gd.vertices3()) {
+		for (int i = 0; i < gd.vertices3().size(); i += 1) {
+			auto const& v = gd.vertices3()[i];
+			std::cout << v.x << ", " << v.y << ", " << v.z << std::endl;
+		}
+
+		std::cout << "printing 2, size: " << gd.vertices2().size() << std::endl;
+		// for (auto const& v : gd.vertices3()) {
+		for (int i = 0; i < gd.vertices2().size(); i += 1) {
+			auto const& v = gd.vertices2()[i];
+			std::cout << v.x << ", " << v.y << std::endl;
+		}
+		once = false;
+	}
+	vao.updatePosition(reinterpret_cast<float*>(gd.vertices3().data()), gd.vertices3().size());
+	graphicsHolder().get().draw(vao);
+}
+
 void grid (
 	float l, float t, float w, float h,
 	float divx, float divy,
@@ -124,7 +148,43 @@ void grid (
 	gh.get().draw(mesh);
 }
 
-void text (
+void loadIdentity() {
+	graphicsHolder().get().loadIdentity();
+}
+
+void translate(float x, float y) {
+	graphicsHolder().get().translate(x, y);
+}
+
+void rotate(float angleX, float angleY, float angleZ) {
+	graphicsHolder().get().rotate(angleX, angleY, angleZ);
+}
+
+void scissorTest(bool doScissor) {
+	graphicsHolder().get().scissorTest(doScissor);
+}
+
+void scissor(int x, int y, int w, int h) {
+	graphicsHolder().get().scissor(x, y, w, h);
+}
+
+float windowHighresFactorX() {
+	return graphicsHolder().get().window().x_highres();
+}
+
+float windowHighresFactorY() {
+	return graphicsHolder().get().window().y_highres();
+}
+
+void color(float r, float g, float b, float a) {
+	graphicsHolder().get().uniformColor(r, g, b, a);
+}
+
+void color(Color const& c) {
+	color(c.r, c.g, c.b, c.a);
+}
+
+void text(
 	const char * s,
 	float l=0, float t=0,
 	unsigned fontSize=8, float lineSpacing=1.5, unsigned tabSpaces=4)
@@ -136,23 +196,17 @@ void text (
 	f.render(s, l, t, 0);
 }
 
-void drawContext (
-	float tx, float ty, View * v, float& cx, float& cy, View *& c)
-{
-	auto& gh = graphicsHolder();
-	auto& g = gh.get();
+void drawContext (float tx, float ty, View * v, float& cx, float& cy, View *& c) {
 	cx += tx; cy += ty; // update absolute coordinates of drawing context
-	g.loadIdentity(); // clear model matrix (assumed set already)
+	loadIdentity(); // clear model matrix (assumed set already)
 	// pix: round position to nearest pixel coordinates
 	// (-) on y: glv has origin at top left,
 	// but al_lib 2D camera has it at bottom left
-	g.translate(pix(cx), -pix(cy)); 
+	translate(pix(cx), -pix(cy));
 	c = v;
 }
 
-void computeCrop(
-	std::vector<Rect>& cr, int lvl, space_t ax, space_t ay, View * v)
-{
+void computeCrop(std::vector<Rect>& cr, int lvl, space_t ax, space_t ay, View * v) {
 	if (v->enabled(CropChildren)) {
 		cr[lvl].set(ax, ay, v->w, v->h);	// set absolute rect
 		// get intersection with myself and previous level
@@ -168,8 +222,7 @@ void computeCrop(
 
 // Views are drawn depth-first from leftmost to rightmost sibling
 void GLV::drawWidgets(unsigned int ww, unsigned int wh, double dsec) {
-	auto& gh = graphicsHolder();
-	auto& g = gh.get();
+	
 
 	// TODO: Perhaps the View tree should be serialized into a separate list
 	//		used for rendering?
@@ -204,7 +257,7 @@ void GLV::drawWidgets(unsigned int ww, unsigned int wh, double dsec) {
 	graphicsData().reset();
 	doDraw(*this);
 
-	g.scissorTest(true);
+	scissorTest(true);
 
 	while(true){
 
@@ -255,11 +308,11 @@ void GLV::drawWidgets(unsigned int ww, unsigned int wh, double dsec) {
 			if(sy < 0) sy=0;
 
 			// glScissor takes size in framebuffer dimension
-			g.scissor(
-				sx * g.window().x_highres(),
-				sy * g.window().y_highres(),
-				sw * g.window().x_highres(),
-				sh * g.window().y_highres()
+			scissor(
+				sx * windowHighresFactorX(),
+				sy * windowHighresFactorY(),
+				sw * windowHighresFactorX(),
+				sh * windowHighresFactorY()
 			);
 
 			graphicsData().reset();
@@ -267,15 +320,12 @@ void GLV::drawWidgets(unsigned int ww, unsigned int wh, double dsec) {
 		}
 	}
 
-	g.scissorTest(false);
+	scissorTest(false);
 }
 
 void View::doDraw(GLV& glv){
-	al::Graphics& g = graphicsHolder().get();
-
 	if(enabled(DrawBack)){
-		glv::Color& colbg = colors().back;
-		g.uniformColor(colbg.r, colbg.g, colbg.b, colbg.a);
+		color(colors().back);
 		rectangle(0, 0, w, h);
 	}
 
@@ -303,8 +353,7 @@ void View::doDraw(GLV& glv){
 		// }
 
 		// g.lineWidth(borderWidth); // disabled in >gl3
-		auto const& cb = colors().border;
-		g.uniformColor(cb.r, cb.g, cb.b, cb.a);
+		color(colors().border);
 		// 1.0 and 0.5: it's hack anyway
 		frame(1.0, 1.0, pix(w)-0.5, pix(h)-0.5);
 		// frame(1.5, 1.5, pix(w)-1.0, pix(h)-1.0);
@@ -317,20 +366,16 @@ void View::doDraw(GLV& glv){
 
 void Widget::drawGrid(){
 	if(enabled(DrawGrid) && size()>1){
-		auto& g = graphicsHolder().get();
-		// g.lineWidth(1); // disabled in >gl3
-		auto const& cb = colors().border;
-		g.uniformColor(cb.r, cb.g, cb.b, cb.a);
+		// lineWidth(1); // disabled in >gl3
+		color(colors().border);
 		grid(0, 0, w, h, sizeX(), sizeY(), false);
 	}
 }
 
 void Widget::drawSelectionBox(){
 	if(enabled(Focused) && enabled(DrawSelectionBox) && size()>1){
-		auto& g = graphicsHolder().get();
-		g.lineWidth(2);
-		auto const& cb = colors().border;
-		g.uniformColor(cb.r, cb.g, cb.b, cb.a);
+		// lineWidth(2); // disabled in >gl3
+		color(colors().border);
 		frame(sx*dx(), sy*dy(), (sx+1)*dx(), (sy+1)*dy());
 	}
 }
@@ -342,8 +387,6 @@ void Widget::onDraw(GLV& g){
 }
 
 void Sliders::onDraw(GLV& glv) {
-	auto& gh = graphicsHolder();
-	auto& g = gh.get();
 	Widget::onDraw(glv);
 
 	float x=paddingX(), xd=dx(), yd=dy();
@@ -358,8 +401,8 @@ void Sliders::onDraw(GLV& glv) {
 			for(int j=0; j<sizeY(); ++j){
 				int ind = index(i,j);
 				auto const& cf = colors().fore;
-				if(isSelected(i,j)) g.uniformColor(cf.r, cf.g, cf.b, cf.a);
-				else                g.uniformColor(cf.r, cf.g, cf.b, cf.a * 0.5);
+				if(isSelected(i,j)) color(cf.r, cf.g, cf.b, cf.a);
+				else                color(cf.r, cf.g, cf.b, cf.a * 0.5);
 
 				float v01 = to01(getValue(ind));
 				//float y0 = to01(0)*(yd - paddingY()*2);
@@ -370,8 +413,7 @@ void Sliders::onDraw(GLV& glv) {
 
 				// if zero line showing
 				if(max()>0 && min()<0){
-					auto const& cb = colors().border;
-					g.uniformColor(cb.r, cb.g, cb.b);
+					color(colors().border);
 					float linePos = pixc(y+yd-y0);
 					line(x, linePos, x+xd, linePos);
 				}
@@ -388,8 +430,8 @@ void Sliders::onDraw(GLV& glv) {
 			for(int j=0; j<sizeY(); ++j){
 				int ind = index(i,j);
 				auto const& cf = colors().fore;
-				if(isSelected(i,j)) g.uniformColor(cf.r, cf.g, cf.b, cf.a);
-				else                g.uniformColor(cf.r, cf.g, cf.b, cf.a * 0.5);
+				if(isSelected(i,j)) color(cf.r, cf.g, cf.b, cf.a);
+				else                color(cf.r, cf.g, cf.b, cf.a * 0.5);
 
 				float v01 = to01(getValue(ind));
 				float x0 = to01(0)*xd;
@@ -397,8 +439,7 @@ void Sliders::onDraw(GLV& glv) {
 
 				// if zero line showing
 				if(max()>0 && min()<0){
-					auto const& cb = colors().border;
-					g.uniformColor(cb.r, cb.g, cb.b);
+					color(colors().border);
 					float linePos = pixc(x+x0);
 					line(linePos, y, linePos, y+yd);
 				}
@@ -410,55 +451,90 @@ void Sliders::onDraw(GLV& glv) {
 }
 
 void Font::render(GraphicsData& gd, const char * v, float x, float y, float z) const {
+	static bool print_once = [](){ std::cout << "Font::render" << std::endl; return true; }();
 
+	gd.reset();
+
+	float sx = mScaleX;
+	float sy = mScaleY;
+	float tx = x;
+	float ty = y;
+	//float tz = z;
+	//float sh = -0.5*sy; // TODO: shear needs to be done an a per-line basis
+	//float sh = 0;
+	
+	//tx=ty=tz=0;
+
+	struct RenderText : public TextIterator{
+		RenderText(const Font& f_, const char *& s_, GraphicsData& g_, float tx_, float ty_, float sx_, float sy_)
+		: TextIterator(f_,s_), g(g_), tx(tx_), ty(ty_), sx(sx_), sy(sy_){}
+		bool onPrintable(char c){
+			return addCharacter(g, c, pixc(tx+x*sx), pixc(ty+y*sy), sx, sy);
+		}
+		GraphicsData& g;
+		float tx,ty,sx,sy;
+	} renderText(*this, v, gd, tx,ty,sx,sy);
+
+	renderText.run();
+	
+	// draw::paint(draw::Lines, gd);
+	lines(gd);
 }
 
 void SliderRange::onDraw(GLV& g) {
+	static bool print_once = [](){ std::cout << "SliderRange::onDraw" << std::endl; return true; }();
 
 }
 
 void Slider2D::onDraw(GLV& g) {
+	static bool print_once = [](){ std::cout << "Slider2D::onDraw" << std::endl; return true; }();
 
 }
 
 void Label::onDraw(GLV& g){
-	// lineWidth(stroke());
-	// color(colors().text);
-	// if(mVertical){ translate(0,h); rotate(0,0,-90); }
-	// font().render(
-	// 	g.graphicsData(),
-	// 	data().toString().c_str(),
-	// 	paddingX(),
-	// 	paddingY()
-	// );
-	//scale(mSize, mSize);
-	//text(value().c_str());
+	// static bool print_once = [](){ std::cout << "Label::onDraw" << std::endl; return true; }();
+	// lineWidth(stroke()); 
+	color(colors().text);
+	if(mVertical){ translate(0,h); rotate(0,0,-90); }
+	font().render(
+		g.graphicsData(),
+		data().toString().c_str(),
+		paddingX(),
+		paddingY()
+	);
+	// scale(mSize, mSize);
+	// text(value().c_str());
 }
 
 
 
 void NumberDialers::fitExtent(){
+	static bool print_once = [](){ std::cout << "NumberDialers::fitExtent" << std::endl; return true; }();
 
 }
 
 
 void NumberDialers::onDraw(GLV& g){
+	static bool print_once = [](){ std::cout << "NumberDialers::onDraw" << std::endl; return true; }();
 
 }
 
 void DropDown::onDraw(GLV& g){
+	static bool print_once = [](){ std::cout << "DropDown::onDraw" << std::endl; return true; }();
 }
 
 ListView& ListView::fitExtent(){
-    return ListView {};
+	static bool print_once = [](){ std::cout << "ListView::fitExtent" << std::endl; return true; }();
+    return *this;
 }
 
 
 void ListView::onDraw(GLV& g){
+	static bool print_once = [](){ std::cout << "ListView::onDraw" << std::endl; return true; }();
 }
 
 void TextView::onDraw(GLV& g){
-
+	static bool print_once = [](){ std::cout << "TextView::onDraw" << std::endl; return true; }();
 }
 
 // -----------------------------------------------------------------------------
