@@ -292,11 +292,11 @@ void GLV::drawWidgets(unsigned int ww, unsigned int wh, double dsec) {
 			// bypass if drawing area outside of crop region
 			if(r.h<=0.f || r.w <= 0.f) continue;
 
-			int sx = pix(r.l);
-			int sy = wh - (pix(r.t) + pix(r.h)) + 0.99; // scissor coord has origin at bottom left
-			int sw = pix(r.w);
-			int sh = r.h + 0.5;
-			if(sy < 0) sy=0;
+			// int sx = pix(r.l);
+			// int sy = wh - (pix(r.t) + pix(r.h)) + 0.99; // scissor coord has origin at bottom left
+			// int sw = pix(r.w);
+			// int sh = r.h + 0.5;
+			// if(sy < 0) sy=0;
 
 			// glScissor takes size in framebuffer dimension
 			//scissor(
@@ -533,6 +533,21 @@ void TextView::onDraw(GLV& g){
 	//static bool print_once = [](){ std::cout << "TextView::onDraw" << std::endl; return true; }();
 }
 
+void Table::onDraw(GLV& g){
+
+}
+
+
+
+
+
+void Scroll::onDraw(GLV& g){
+
+}
+
+void Divider::onDraw(GLV& g){
+}
+
 // -----------------------------------------------------------------------------
 #ifdef DONT_COMMENT_OUT
 
@@ -621,115 +636,6 @@ void SliderRange::onDraw(GLV& g){
 		y1 = pixc(y1)-1;
 		y2 = pixc(y2);
 		shape(Lines, 0,y1, w,y1, 0,y2, w,y2);
-	}
-}
-
-void Divider::onDraw(GLV& g){
-	using namespace glv::draw;
-	if(mStrokeWidth <= 0) return;
-
-	lineWidth(mStrokeWidth);
-	color(colors().fore);
-	if(mIsVertical){
-		float p = pixc(w/2);
-		shape(Lines, p,0, p,h);		
-	}
-	else{
-		float p = pixc(h/2);
-		shape(Lines, 0,p, w,p);
-	}
-}
-
-void Table::onDraw(GLV& g){
-//	for(unsigned i=0; i<mColWs.size(); ++i) printf("%g ", mColWs[i]); printf("\n");
-//	for(unsigned i=0; i<mRowHs.size(); ++i) printf("%g ", mRowHs[i]); printf("\n\n");
-
-	using namespace glv::draw;
-	if(enabled(DrawGrid)){
-		color(colors().border);
-		lineWidth(1);
-		for(unsigned i=0; i<mCells.size(); ++i){
-			space_t cl,ct,cr,cb;
-			getCellDim(i, cl,ct,cr,cb);
-			cl -= mPad1/2;
-			cr += mPad1/2;
-			ct -= mPad2/2;
-			cb += mPad2/2;
-			frame(cl,ct,cr,cb);
-		}
-	}
-}
-
-
-
-
-
-void Scroll::onDraw(GLV& g){
-
-	mSliderX.bringToFront();	// do not change order of these!
-	mSliderY.bringToFront();
-	mSliderXY.bringToFront();
-
-	// hide scrollbars by default
-	mSliderX.disable(Visible);
-	mSliderY.disable(Visible);
-	mSliderXY.disable(Visible);
-
-	if(child == &mSliderX) return;
-
-	Rect r = child->rect();
-	
-	r.w += paddingX()*2;
-	r.h += paddingY()*2;
-
-//		Rect r(0,0,0,0);
-//		
-//		{
-//			View * c = child;
-//			while(c){
-//				if(c != &mSliderX && c != &mSliderY){
-//					r.unionOf(*c, r);
-//				}
-//				c = c->sibling;
-//			}
-//		}
-////		r.print();
-
-
-	// slider units are in pixels
-
-	float xpos = mSliderX.getValue(0);
-	float ypos = mSliderY.getValue(1);
-	child->pos(-xpos + paddingX(), ypos + paddingY());
-	mSliderX.interval(0, r.width());
-	mSliderY.interval(0,-r.height()); // use negative range so 0 is at top
-
-	if(r.width() > width()){
-		if(mMode & HORIZONTAL){
-			mSliderX.enable(Visible);
-			mSliderXY.enable(Visible);
-		}
-		// subtracting y slider width to fit content
-		float sr = width() - mSliderY.width();
-		mSliderX.endpoints(xpos, xpos+sr);
-		mSliderX.jump(sr/(mSliderX.max()-mSliderX.min()));
-	}
-
-	if(r.height() > height()){
-		if(mMode & VERTICAL){
-			mSliderY.enable(Visible);
-			mSliderXY.enable(Visible);
-		}
-		// subtracting x slider height to fit content
-		float sr = height() - mSliderX.height();
-		mSliderY.endpoints(ypos, ypos-sr);
-		mSliderY.jump(sr/(mSliderY.max()-mSliderY.min()));
-//		printf("%g %g\n", mSliderY.getValue(0), mSliderY.getValue(1));
-	}
-	
-	if(mMode & ALWAYS){
-		if(mMode & HORIZONTAL) mSliderX.enable(Visible);
-		if(mMode & VERTICAL  ) mSliderY.enable(Visible);
 	}
 }
 
