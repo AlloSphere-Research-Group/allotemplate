@@ -39,7 +39,7 @@ public:
   glv::Slider slider{glv::Rect{100,20}};
   glv::Label label;
 
-  glv::Placer p {glv, glv::Direction::E, glv::Place::TL, 10, 10};
+  //glv::Placer p {glv, glv::Direction::E, glv::Place::TL, 10, 10};
 
   glv::View v{glv::Rect{100,100, 600,400}};
   glv::View v1{glv::Rect{10,10, 300,200}}, v2{glv::Rect{v1.right()+10,10, 100,200}};
@@ -49,6 +49,9 @@ public:
 void onCreate() {
     shader.compile(al_default_vert_shader(), al_default_frag_shader());
     
+    glv.extent(width(), height());
+    glv.broadcastEvent(glv::Event::WindowResize);
+
      sl1.attachVariable(var);
      sl2.attachVariable(var);
     
@@ -73,7 +76,7 @@ void onCreate() {
     sliders.setValue(0.5, 3);
 
     slider.attach(ntSetLabel, glv::Update::Value, &label);
-    p << slider << label;
+    //p << slider << label;
     slider.setValue(0.5);
 
     glv << v;
@@ -91,7 +94,7 @@ void onCreate() {
     v.disable(glv::DrawBack);
     v2.disable(glv::DrawBorder);
     v12.disable(glv::FocusHighlight);
-    
+
     // Set color styles
     glv.cloneStyle().colors().set(glv::StyleColor::WhiteOnBlack);
     v1.colors().set(glv::Color(0.2,0.4,1,0.8), 0.7);
@@ -130,6 +133,8 @@ void onCreate() {
   void onMouseDown(Mouse const& m) {
     float x = m.x();
     float y = m.y();
+    float relx = x;
+    float rely = y;
     auto b = m.button();
     auto btn = glv::Mouse::Left;
     switch (b) {
@@ -137,14 +142,16 @@ void onCreate() {
       case al::Mouse::MIDDLE: btn = glv::Mouse::Middle; break;
       case al::Mouse::RIGHT: btn = glv::Mouse::Right; break;
     }
-    glv.setMouseDown(x, y, btn, 0);
-    glv.setMousePos(x, y, x, y);
+    glv.setMouseDown(relx, rely, btn, 0);
+    glv.setMousePos(int(x), int(y), relx, rely);
     glv.propagateEvent();
   }
 
   void onMouseUp(Mouse const& m) {
     float x = m.x();
     float y = m.y();
+    float relx = x;
+    float rely = y;
     auto b = m.button();
     auto btn = glv::Mouse::Left;
     switch (b) {
@@ -152,25 +159,34 @@ void onCreate() {
       case al::Mouse::MIDDLE: btn = glv::Mouse::Middle; break;
       case al::Mouse::RIGHT: btn = glv::Mouse::Right; break;
     }
-    glv.setMouseUp(x, y, btn, 0);
-    glv.setMousePos(x, y, x, y);
+    glv.setMouseUp(relx, rely, btn, 0);
+    glv.setMousePos(int(x), int(y), relx, rely);
     glv.propagateEvent();
   }
 
   void onMouseDrag(Mouse const& m) {
     float x = m.x();
     float y = m.y();
-    glv.setMouseMotion(x, y, glv::Event::MouseDrag);
-    glv.setMousePos(x, y, x, y);
+    float relx = x;
+    float rely = y;
+    glv.setMouseMotion(relx, rely, glv::Event::MouseDrag);
+    glv.setMousePos(int(x), int(y), relx, rely);
     glv.propagateEvent();
   }
 
   void onMouseMove(Mouse const& m) {
-    
+      //float x = m.x();
+      //float y = m.y();
+      //float relx = x;
+      //float rely = y;
+      //glv.setMouseMotion(relx, rely, glv::Event::MouseMove);
+      //glv.setMousePos(int(x), int(y), relx, rely);
+      //glv.propagateEvent();
   }
 
   void onResize(int w, int h) {
-    
+      glv.extent(w, h);
+      glv.broadcastEvent(glv::Event::WindowResize);
   }
 
   void onExit() {

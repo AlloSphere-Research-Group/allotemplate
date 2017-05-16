@@ -263,16 +263,16 @@ void GLV::drawWidgets(unsigned int ww, unsigned int wh, double dsec) {
 		// find the next view to draw
 
 		// go to child node if exists and I'm drawable
-		if(cv->child && cv->visible()){
+		if(cv->child && cv->visible()) {
 			drawContext(cv->child->l, cv->child->t, cv->child, cx, cy, cv);
 			computeCrop(cropRects, ++lvl, cx, cy, cv);
 		}
-		else if(cv->sibling){ // go to sibling node if exists
+		else if(cv->sibling) { // go to sibling node if exists
 			drawContext(cv->sibling->l - cv->l, cv->sibling->t - cv->t, cv->sibling, cx, cy, cv);
 			computeCrop(cropRects, lvl, cx, cy, cv);
 		}
-		else{ // retrace upwards until a parent's sibling is found
-			while(cv != root && cv->sibling == 0){
+		else { // retrace upwards until a parent's sibling is found
+			while(cv != root && cv->sibling == 0) {
 				drawContext(-cv->l, -cv->t, cv->parent, cx, cy, cv);
 				lvl--;
 			}
@@ -281,16 +281,26 @@ void GLV::drawWidgets(unsigned int ww, unsigned int wh, double dsec) {
 				drawContext(cv->sibling->l - cv->l, cv->sibling->t - cv->t, cv->sibling, cx, cy, cv);
 				computeCrop(cropRects, lvl, cx, cy, cv);
 			}
-			else break; // break the loop when the traversal returns to the root
+			else {
+                break; // break the loop when the traversal returns to the root
+            }
 		}
 		
 		// draw current view
 		if(cv->visible()){
-			Rect r = cropRects[lvl-1];	// cropping region comes from parent context
-			if(cv->enabled(CropSelf)) r.intersection(Rect(cx, cy, cv->w, cv->h), r); // crop my own draw?
+			Rect r = cropRects[lvl-1]; // cropping region comes from parent context
 
-			// bypass if drawing area outside of crop region
-			if(r.h<=0.f || r.w <= 0.f) continue;
+            
+            /*
+			if(cv->enabled(CropSelf)) { // crop my own draw?
+                r.intersection(Rect(cx, cy, cv->w, cv->h), r);
+            }
+            */
+
+			if(r.h<=0.f || r.w <= 0.f) { // bypass if drawing area outside of crop region
+                std::cout << "bypassing" << std::endl;
+                continue;
+            }
 
 			// int sx = pix(r.l);
 			// int sy = wh - (pix(r.t) + pix(r.h)) + 0.99; // scissor coord has origin at bottom left
@@ -536,10 +546,6 @@ void TextView::onDraw(GLV& g){
 void Table::onDraw(GLV& g){
 
 }
-
-
-
-
 
 void Scroll::onDraw(GLV& g){
 
