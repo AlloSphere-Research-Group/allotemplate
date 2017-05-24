@@ -53,7 +53,7 @@ public:
 
   void onCreate() {
     append(nav.target(viewpoint));
-    shader.compile(vert_shader(), frag_shader());
+    shader.compile(al_default_vert_shader(), al_default_frag_shader());
 
     tex.create2D(width(), height());
     rbo.create(width(), height());
@@ -87,25 +87,26 @@ public:
 
   void onDraw() {
     g.shader(shader);
-    g.shader().uniform("tex0", 0);
-    g.shader().uniform("tex0_mix", 0.0f);
+
+    g.textureMix(0);
+    g.uniformColorMix(0);
 
     // draw 3D to offscreen
     g.framebuffer(fbo);
     g.clearColor(0, 1, 1, 1);
     g.clearDepth(1);
-    g.blending(false);
 
+    g.blending(false);
     g.depthTesting(true);
     g.cullFace(true);
-    g.camera(viewpoint); 
+
+    g.camera(viewpoint);
 
     g.pushMatrix();
     g.translate(sinf(sec()), 0, -10);
     g.rotate(sinf(2 * sec()), 0, 0, 1);
     g.rotate(sinf(3 * sec()), 0, 1, 0);
     g.scale(3, 2, 1);
-    g.uniformColorMix(0);
     g.draw(mesh_3d);
     g.popMatrix();
 
@@ -129,13 +130,14 @@ public:
     m.update();
 
     // draw 3D scene
-    g.shader().uniform("tex0_mix", 1.0f);
+    g.textureMix(1);
     g.texture(tex);
     g.draw(m);
 
     // then draw overlay 2D
     g.uniformColorMix(1);
-    g.shader().uniform("tex0_mix", 0.0f);
+    g.textureMix(0);
+
     g.polygonMode(Graphics::FILL);
     for (int j = 0; j < 3; j += 1) {
       for (int i = 0; i < 4; i += 1) {
