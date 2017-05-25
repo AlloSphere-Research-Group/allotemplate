@@ -31,7 +31,7 @@ public:
   glv::GLV glv;
   glv::Slider sl1 {glv::Rect(150,150,300,30)};
   glv::Slider sl2 {glv::Rect(200,200,200,50)};
-  float var = 1; // !!!
+  float var = 1;
 
   glv::Sliders sliders{glv::Rect{200,80}, 1, numSliders};
   glv::Label labels[numSliders];
@@ -39,27 +39,25 @@ public:
   glv::Slider slider{glv::Rect{100,20}};
   glv::Label label;
 
-  //glv::Placer p {glv, glv::Direction::E, glv::Place::TL, 10, 10};
-
   glv::View v{glv::Rect{100,100, 600,400}};
   glv::View v1{glv::Rect{10,10, 300,200}}, v2{glv::Rect{v1.right()+10,10, 100,200}};
   glv::View v11{glv::Rect{20,20, 80,100}}, v12{glv::Rect{80,80,100,80}};
-
 
 void onCreate() {
     shader.compile(al_default_vert_shader(), al_default_frag_shader());
     
     glv.extent(width(), height());
     glv.broadcastEvent(glv::Event::WindowResize);
+    glv.colors().set(glv::StyleColor::SmokyGray);
+    glv::graphicsHolder().set(g); // register graphics object
 
-     sl1.attachVariable(var);
-     sl2.attachVariable(var);
-    
-     glv << sl1 << sl2;
+    sl1.attachVariable(var);
+    sl2.attachVariable(var);
+
+    glv << sl1 << sl2;
 
     for(int i=0; i<numSliders; ++i){
       labels[i].pos(2,4);
-      
       // Set anchor factor so labels lie on top of each slider
       labels[i].anchor(0, float(i)/numSliders);
 
@@ -67,7 +65,6 @@ void onCreate() {
     }
 
     sliders.attach(ntSetLabel, glv::Update::Value, labels);
-    sliders.colors().set(glv::StyleColor::SmokyGray);
 
     glv << sliders;
     sliders.setValue(0.2, 0);
@@ -76,7 +73,6 @@ void onCreate() {
     sliders.setValue(0.5, 3);
 
     slider.attach(ntSetLabel, glv::Update::Value, &label);
-    //p << slider << label;
     slider.setValue(0.5);
 
     glv << v;
@@ -87,7 +83,6 @@ void onCreate() {
     glv::View* views[] = {&v, &v1, &v2, &v11, &v12};
     for(int i=0; i<5; ++i){
       views[i]->addHandler(glv::Event::MouseDrag, glv::Behavior::mouseMove);
-      //views[i]->enable(KeepWithinParent);
     }
     
     // Disable some of the default View properties
@@ -95,9 +90,6 @@ void onCreate() {
     v2.disable(glv::DrawBorder);
     v12.disable(glv::FocusHighlight);
 
-    // Set color styles
-    glv.cloneStyle().colors().set(glv::StyleColor::WhiteOnBlack);
-    v1.colors().set(glv::Color(0.2,0.4,1,0.8), 0.7);
   }
 
   void onAnimate(double dt) {
@@ -106,7 +98,22 @@ void onCreate() {
 
   void onDraw() {
     g.shader(shader);
-    g.clearColor(0.5, 0.55, 0.6, 1.0);
+    g.clearColor(1, 1, 1, 1);
+
+    g.camera(Viewpoint::ORTHO_FOR_2D);
+    g.pushMatrix();
+    g.loadIdentity();
+    g.translate(0, height());
+    g.scale(1, -1);
+    g.blending(false);
+    g.depthTesting(false);
+    g.textureMix(0, 0, 0, 0);
+    g.uniformColorMix(1);
+    glv::color(1, 0, 0, 1);
+    glv::rectangle(100, 100, 200, 200);
+    glv::text("this is\n\tworking", 200, 50, 40);
+    g.popMatrix();
+
     al_draw_glv(glv, g, delta_t);
   }
 

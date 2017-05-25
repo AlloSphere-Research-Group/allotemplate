@@ -190,8 +190,8 @@ void text(
 void drawContext (float tx, float ty, View * v, float& cx, float& cy, View *& c) {
 	cx += tx; cy += ty; // update absolute coordinates of drawing context
 
-	//loadIdentity(); // clear model matrix (assumed set already)
     // clear model matrix (assumed set already)
+    // it was loadIdentity() before but
     // pop then push preserves previous matrix (the one before pushing)
     popMatrix();
     pushMatrix();
@@ -207,7 +207,7 @@ void computeCrop(std::vector<Rect>& cr, int lvl, space_t ax, space_t ay, View * 
 		// get intersection with myself and previous level
 		if (lvl>0) {
 			Rect r = cr[lvl];
-			r.resizeEdgesBy(-1);	// shrink area to save the borders
+			// r.resizeEdgesBy(-1);	// shrink area to save the borders
 			r.intersection(cr[lvl-1], cr[lvl]);
 		}
 	}
@@ -239,15 +239,15 @@ void GLV::drawWidgets(unsigned int ww, unsigned int wh, double dsec) {
 	int lvl = 0;	// start at root = 0
 
 	// Animate all the views
-	struct AnimateViews : public TraversalAction{
-		AnimateViews(double dt_): dt(dt_){}
-		virtual bool operator()(View * v, int depth){
-			if(v->enabled(Animate)) v->onAnimate(dt);
-			return true;
-		}
-		double dt;
-	} animateViews(dsec);
-	traverseDepth(animateViews);
+	// struct AnimateViews : public TraversalAction{
+	// 	AnimateViews(double dt_): dt(dt_){}
+	// 	virtual bool operator()(View * v, int depth){
+	// 		if(v->enabled(Animate)) v->onAnimate(dt);
+	// 		return true;
+	// 	}
+	// 	double dt;
+	// } animateViews(dsec);
+	// traverseDepth(animateViews);
 
 	graphicsData().reset();
 	doDraw(*this);
@@ -298,7 +298,7 @@ void GLV::drawWidgets(unsigned int ww, unsigned int wh, double dsec) {
             */
 
 			if(r.h<=0.f || r.w <= 0.f) { // bypass if drawing area outside of crop region
-                std::cout << "bypassing" << std::endl;
+                // std::cout << "bypassing" << std::endl;
                 continue;
             }
 
@@ -386,7 +386,7 @@ void Widget::drawSelectionBox(){
 void Widget::onDraw(GLV& g){
 	drawSelectionBox();
 	drawGrid();
-	// g.graphicsData().reset();
+	g.graphicsData().reset();
 }
 
 void Sliders::onDraw(GLV& glv) {
