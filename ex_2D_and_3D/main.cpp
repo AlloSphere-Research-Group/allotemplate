@@ -7,38 +7,6 @@ using namespace al;
 using namespace std;
 
 // example of 2D & 3D mix with fbo
-// a lot of elements will be hidden later
-
-std::string vert_shader() { return R"(
-#version 330
-uniform mat4 MVP;
-layout (location = 0) in vec3 position;
-layout (location = 1) in vec4 color;
-layout (location = 2) in vec2 texcoord;
-out vec4 color_;
-out vec2 texcoord_;
-void main() {
-  gl_Position = MVP * vec4(position, 1.0);
-  color_ = color;
-  texcoord_ = texcoord;
-}
-)";}
-
-std::string frag_shader() { return R"(
-#version 330
-uniform sampler2D tex0;
-uniform float tex0_mix;
-uniform vec4 uniformColor;
-uniform float uniformColorMix;
-in vec4 color_;
-in vec2 texcoord_;
-out vec4 frag_color;
-void main() {
-  vec4 tex0_val = texture(tex0, texcoord_);
-  vec4 color_val = mix(color_, uniformColor, uniformColorMix);
-  frag_color = mix(color_val, tex0_val, tex0_mix);
-}
-)";}
 
 class MyApp : public App {
 public:
@@ -47,27 +15,21 @@ public:
   ShaderProgram shader;
   VAOMesh mesh_2d, mesh_3d;
   Graphics g {*this};
-  FBO fbo;
+  EasyFBO easyfbo;
   Texture tex;
   RBO rbo;
 
   void onCreate() {
     append(nav.target(viewpoint));
     shader.compile(al_default_vert_shader(), al_default_frag_shader());
-
-    tex.create2D(width(), height());
-    rbo.create(width(), height());
-    fbo.bind();
-    fbo.attachTexture2D(tex);
-    fbo.attachRBO(rbo);
-    fbo.unbind();
+    easyfbo.init(640, 480);
 
     mesh_2d.reset();
     mesh_2d.primitive(Mesh::TRIANGLES);
     mesh_2d.vertex(0, 0, 0);
     mesh_2d.vertex(70, 0, 0);
     mesh_2d.vertex(0, 70, 0);
-    mesh_2d.update(); // it is important to upload mesh data to VAO
+    mesh_2d.update(); // to do this is important: uploads mesh data to VAO
 
     addIcosahedron(mesh_3d);
     int num_verts = mesh_3d.vertices().size();
@@ -76,9 +38,10 @@ public:
     }
     mesh_3d.update();
 
+    // viewpoint: pose of camera, lens of camera, and viewport size
     viewpoint.pos(Vec3f(0, 0, 10)).faceToward(Vec3f(0, 0, 0), Vec3f(0, 1, 0));
     viewpoint.fovy(30).near(0.1).far(100);
-    viewpoint.viewport(0, 0, width(), height());
+    viewpoint.viewport(0, 0, 640, 480); // same as our fbo
   }
 
   void onAnimate(double dt) {
@@ -88,11 +51,9 @@ public:
   void onDraw() {
     g.shader(shader);
 
-    g.textureMix(0);
-    g.uniformColorMix(0);
-
     // draw 3D to offscreen
-    g.framebuffer(fbo);
+    g.framebuffer(easyfbo.fbo());
+    g.camera(viewpoint);
     g.clearColor(0, 1, 1, 1);
     g.clearDepth(1);
 
@@ -100,7 +61,8 @@ public:
     g.depthTesting(true);
     g.cullFace(true);
 
-    g.camera(viewpoint);
+    g.textureMix(0);
+    g.uniformColorMix(0);
 
     g.pushMatrix();
     g.translate(sinf(sec()), 0, -10);
@@ -112,6 +74,7 @@ public:
 
     // now draw to window
     g.framebuffer(FBO::DEFAULT);
+    g.camera(Viewpoint::ORTHO_FOR_2D);
     g.clearColor(1, 1, 1);
     g.clearDepth(1);
 
@@ -120,18 +83,16 @@ public:
     g.blendModeTrans();
     g.depthTesting(false);
     g.cullFace(false);
-    g.camera(Viewpoint::ORTHO_FOR_2D);
 
     // prepare rect to show 3D drawing we did
     VAOMesh m;
-    float w = width();
-    float h = height();
-    addTexRect(m, 0.1 * w, 0.1 * h, 0.8 * w, 0.8 * h);
+    addTexRect(m, width() / 2 - 320, height() / 2 - 240, 640, 480);
     m.update();
 
     // draw 3D scene
+    g.uniformColorMix(0);
     g.textureMix(1);
-    g.texture(tex);
+    g.texture(easyfbo.tex());
     g.draw(m);
 
     // then draw overlay 2D
@@ -151,23 +112,12 @@ public:
 
     // end of onDraw
   }
-  
-  void onResize(int w, int h) {
-    // update viewport
-    cout << w << ", " << h << endl;
-    viewpoint.viewport(0, 0, width(), height());
-    tex.create2D(width(), height());
-    rbo.create(width(), height());
-    fbo.bind();
-    fbo.attachTexture2D(tex);
-    fbo.unbind();
-  }
 
 };
 
 int main() {
   MyApp app;
-  app.dimensions(640, 480);
+  app.dimensions(720, 640);
   app.start(); // blocks
   return 0;
 }
