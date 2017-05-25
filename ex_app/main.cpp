@@ -22,6 +22,7 @@ public:
     const GLFWvidmode* mode = glfwGetVideoMode(primary);
     // change dimensions depending on the monitor resolution
     dimensions(mode->width / 4, mode->height / 2);
+    decorated(false);
   }
 
   void onCreate() {
@@ -80,11 +81,7 @@ public:
 
 int main() {
   MyApp app;
-  app.initAudio();
-  app.dimensions(640, 480);
-  app.title("app test");
   app.fps(60);
-  app.decorated(true);
   app.displayMode(Window::DEFAULT_BUF);
   app.start();
   return 0;
