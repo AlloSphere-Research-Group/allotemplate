@@ -679,7 +679,7 @@ void al_draw_glv(
     g.loadIdentity();
     g.translate(0, g.window().height()); // move to top-right
     g.scale(1, -1); // flip y
-	glv.drawWidgets(w, h, 0); // animation disabled...
+	glv.drawWidgets(w, h, 0); // 0 for dsec: animation disabled...
 	g.popMatrix();
 }
 
