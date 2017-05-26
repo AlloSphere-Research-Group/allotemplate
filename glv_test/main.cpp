@@ -27,7 +27,7 @@ class MyApp : public App {
 public:
   ShaderProgram shader;
   Graphics g {*this};
-  double delta_t;
+
   glv::GLV glv;
   glv::Slider sl1 {glv::Rect(150,150,300,30)};
   glv::Slider sl2 {glv::Rect(200,200,200,50)};
@@ -90,15 +90,30 @@ void onCreate() {
     v2.disable(glv::DrawBorder);
     v12.disable(glv::FocusHighlight);
 
+    
+    float range[2];
+    glGetFloatv(GL_ALIASED_LINE_WIDTH_RANGE, range);
+    cout << "aliased line [" << range[0] << ":" << range[1] << "]" << endl;
+    glGetFloatv(GL_SMOOTH_LINE_WIDTH_RANGE, range);
+    cout << "smooth line [" << range[0] << ":" << range[1] << "]" << endl;
+    float val;
+    glGetFloatv(GL_SMOOTH_LINE_WIDTH_GRANULARITY, &val);
+    cout << "smooth line granularity [" << val << "]" << endl;
+    glGetFloatv(GL_POINT_SIZE_RANGE, range);
+    cout << "point size [" << range[0] << ":" << range[1] << "]" << endl;
+
+    // glHint(GL_LINE_SMOOTH_HINT, GL_FASTEST);
+    // glEnable(GL_LINE_SMOOTH);
+    // glLineWidth(1);
   }
 
   void onAnimate(double dt) {
-    delta_t = dt;
+
   }
 
   void onDraw() {
     g.shader(shader);
-    g.clearColor(1, 1, 1, 1);
+    g.clearColor(0.7, 0.6, 0.5, 1);
 
     g.camera(Viewpoint::ORTHO_FOR_2D);
     g.pushMatrix();
@@ -114,7 +129,7 @@ void onCreate() {
     glv::text("this is\n\tworking", 200, 50, 40);
     g.popMatrix();
 
-    al_draw_glv(glv, g, delta_t);
+    al_draw_glv(glv, g);
   }
 
   void onKeyDown(Keyboard const& k) {

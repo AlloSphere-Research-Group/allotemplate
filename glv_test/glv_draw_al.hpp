@@ -238,6 +238,8 @@ void GLV::drawWidgets(unsigned int ww, unsigned int wh, double dsec) {
 	std::vector<Rect> cropRects(16, Rect(ww, wh));	// index is hierarchy level
 	int lvl = 0;	// start at root = 0
 
+	/* animation disabled */
+
 	// Animate all the views
 	// struct AnimateViews : public TraversalAction{
 	// 	AnimateViews(double dt_): dt(dt_){}
@@ -355,10 +357,10 @@ void View::doDraw(GLV& glv){
 		// 	borderWidth *= 2;
 		// }
 
-		// g.lineWidth(borderWidth); // disabled in >gl3
+		// lineWidth(borderWidth); // disabled in >gl3
+
 		color(colors().border);
-		// 1.0 and 0.5: it's hack anyway
-		frame(1.0, 1.0, pix(w)-0.5, pix(h)-0.5);
+		frame(0.5, 0.5, pix(w)-0.5, pix(h)-0.5);
 		// frame(1.5, 1.5, pix(w)-1.0, pix(h)-1.0);
 		// const float ds = 0.5; // OpenGL suggests 0.375, but smears with AA enabled
 		// frame(ds, ds, pix(w)-ds, pix(h)-ds);
@@ -369,7 +371,6 @@ void View::doDraw(GLV& glv){
 
 void Widget::drawGrid(){
 	if(enabled(DrawGrid) && size()>1){
-		// lineWidth(1); // disabled in >gl3
 		color(colors().border);
 		grid(0, 0, w, h, sizeX(), sizeY(), false);
 	}
@@ -377,14 +378,14 @@ void Widget::drawGrid(){
 
 void Widget::drawSelectionBox(){
 	if(enabled(Focused) && enabled(DrawSelectionBox) && size()>1){
-		// lineWidth(2); // disabled in >gl3
+		// lineWidth(1); // disabled in >gl3
 		color(colors().border);
 		frame(sx*dx(), sy*dy(), (sx+1)*dx(), (sy+1)*dy());
 	}
 }
 
 void Widget::onDraw(GLV& g){
-	drawSelectionBox();
+	// drawSelectionBox();
 	drawGrid();
 	g.graphicsData().reset();
 }
@@ -415,11 +416,11 @@ void Sliders::onDraw(GLV& glv) {
 				rectangle(x, y + (yd-v01*(yd-paddingY()*2)), x+xd-paddingX()*2, y + (yd-y0));
 
 				// if zero line showing
-				if(max()>0 && min()<0){
-					color(colors().border);
-					float linePos = pixc(y+yd-y0);
-					line(x, linePos, x+xd, linePos);
-				}
+				// if(max()>0 && min()<0){
+				// 	color(colors().border);
+				// 	float linePos = pixc(y+yd-y0);
+				// 	line(x, linePos, x+xd, linePos);
+				// }
 				y += yd;
 			}
 			x += xd;	
@@ -441,11 +442,11 @@ void Sliders::onDraw(GLV& glv) {
 				rectangle(x + x0, y, v01*(xd-paddingX()*2)+x, y+yd-paddingY()*2);
 
 				// if zero line showing
-				if(max()>0 && min()<0){
-					color(colors().border);
-					float linePos = pixc(x+x0);
-					line(linePos, y, linePos, y+yd);
-				}
+				// if(max()>0 && min()<0){
+				// 	color(colors().border);
+				// 	float linePos = pixc(x+x0);
+				// 	line(linePos, y, linePos, y+yd);
+				// }
 				y += yd;
 			}
 			x += xd;
@@ -653,7 +654,7 @@ void SliderRange::onDraw(GLV& g){
 
 void al_draw_glv(
 	glv::GLV& glv, al::Graphics& g,
-	unsigned x, unsigned y, unsigned w, unsigned h, double dsec
+	unsigned x, unsigned y, unsigned w, unsigned h
 ) {
 	// g.lighting(false);
 	g.depthTesting(false);
@@ -678,10 +679,11 @@ void al_draw_glv(
     g.loadIdentity();
     g.translate(0, g.window().height()); // move to top-right
     g.scale(1, -1); // flip y
-	glv.drawWidgets(w, h, dsec);
+	glv.drawWidgets(w, h, 0); // animation disabled...
 	g.popMatrix();
 }
 
-void al_draw_glv(glv::GLV& glv, al::Graphics& g, double dsec) {
-	al_draw_glv(glv, g, 0, 0, g.window().width(), g.window().height(), dsec);
+void al_draw_glv(glv::GLV& glv, al::Graphics& g) {
+	// animation is disabled...
+	al_draw_glv(glv, g, 0, 0, g.window().width(), g.window().height());
 }
