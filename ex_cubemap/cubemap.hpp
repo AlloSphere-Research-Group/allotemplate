@@ -13,8 +13,7 @@ namespace al {
 
 inline std::string cubevert() { return R"(
 #version 330
-uniform mat4 M;
-uniform mat4 V;
+uniform mat4 MV;
 uniform mat4 P;
 uniform mat4 C; // cubemap vertex displacement
 
@@ -80,7 +79,8 @@ void main() {
 
 inline std::string cubesamplevert() { return R"(
 #version 330
-uniform mat4 MVP;
+uniform mat4 MV;
+uniform mat4 P;
 
 layout (location = 0) in vec3 position;
 layout (location = 2) in vec2 texcoord;
@@ -88,7 +88,7 @@ layout (location = 2) in vec2 texcoord;
 out vec2 texcoord_;
 
 void main() {
-  gl_Position = MVP * vec4(position, 1.0);
+  gl_Position = P * MV * vec4(position, 1.0);
   texcoord_ = texcoord;
 }
 )";}

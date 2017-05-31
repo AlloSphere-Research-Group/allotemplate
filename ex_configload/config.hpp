@@ -24,7 +24,6 @@ public:
       int height;           ///< Projector height in pixels
       float b,h,l,w;        ///< Viewport settings
       bool active;          ///< Active Stereo Supported boolean
-      float* data;          ///< Calibration Data = numpixels * 4
     };
 
     /// Projectors per Render machine
@@ -109,6 +108,33 @@ public:
         }
     }
 };
+
+
+/// Load Calibration Data
+// void loadData() {
+//   for (auto& i : mProjector) {
+//     if(i.width * i.height != 0) {
+//       fstream projFile;
+
+//       openFile(i.filepath, projFile, std::ios::binary | std::ios::in);
+
+//       if(projFile.is_open()) {
+
+//         if(i.data) free(i.data);
+//         int32_t elems = i.width * i.height;
+
+//         i.data = (float *)malloc(sizeof(float) * elems * 4);
+
+//         projFile.read((char *)i.data, sizeof(float) * elems * 4);
+//         projFile.close();
+//       }
+//     } else {
+
+//         printf("config file has no width/height data\n");
+//     }
+//   }
+// }
+
 
 } // namespace om
 

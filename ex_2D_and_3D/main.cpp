@@ -32,10 +32,13 @@ public:
     mesh_2d.update(); // to do this is important: uploads mesh data to VAO
 
     addIcosahedron(mesh_3d);
+    // addSphere(mesh_3d);
     int num_verts = mesh_3d.vertices().size();
+    std::cout << "num verts: " << num_verts << std::endl;
     for (int i = 0; i < num_verts; i++) {
-      mesh_3d.color(i / float(num_verts), (num_verts - i) / float(num_verts), 0.0);
+      mesh_3d.color(i / float(num_verts), (num_verts - i) / float(num_verts), 1.0);
     }
+    mesh_3d.generateNormals();
     mesh_3d.update();
 
     // viewpoint: pose of camera, lens of camera, and viewport size
@@ -63,19 +66,23 @@ public:
 
     g.textureMix(0);
     g.uniformColorMix(0);
+    g.lightMix(1);
+    g.ambientBrightness(0.2);
+    g.lightIntensity(1, 0, 0, 0);
+    g.lightPos(100 * cosf(6 * sec()), 0, 100 * sinf(6 * sec()));
 
     g.pushMatrix();
     g.translate(sinf(sec()), 0, -10);
     g.rotate(sinf(2 * sec()), 0, 0, 1);
     g.rotate(sinf(3 * sec()), 0, 1, 0);
-    g.scale(3, 2, 1);
+    g.scale(4, 3, 4);
     g.draw(mesh_3d);
     g.popMatrix();
 
     // now draw to window
     g.framebuffer(FBO::DEFAULT);
     g.camera(Viewpoint::ORTHO_FOR_2D);
-    g.clearColor(1, 1, 1);
+    g.clearColor(0.5, 0.5, 0.5);
     g.clearDepth(1);
 
     // setting for 2D drawing
@@ -92,12 +99,14 @@ public:
     // draw 3D scene
     g.uniformColorMix(0);
     g.textureMix(1);
+    g.lightMix(0);
     g.texture(easyfbo.tex());
     g.draw(m);
 
     // then draw overlay 2D
     g.uniformColorMix(1);
-    g.textureMix(0);
+    g.textureMix(0, 0, 0, 0);
+    g.lightMix(0);
 
     g.polygonMode(Graphics::FILL);
     for (int j = 0; j < 3; j += 1) {
