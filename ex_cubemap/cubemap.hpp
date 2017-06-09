@@ -49,7 +49,7 @@ vec4 displace(in vec4 vertex) {
 }
 
 void main() {
-  vec4 vertex = V * M * vec4(position, 1.0);
+  vec4 vertex = MV * vec4(position, 1.0);
   gl_Position = P * C * displace(vertex);
   color_ = color;
   texcoord_ = texcoord;
@@ -211,7 +211,6 @@ public:
     g->framebuffer(fbo_);
     g->shader(cubeshader_);
     g->camera(view_);
-    g->sendIndividualMatrices(true); // make M, V, P matrices individually sent as uniform
   }
 
   void set_eye(int i) {
@@ -225,7 +224,6 @@ public:
   }
 
   void end() {
-    g->sendIndividualMatrices(false);
     g->framebuffer(FBO::DEFAULT);
     //fbo_.unbind();
   }
