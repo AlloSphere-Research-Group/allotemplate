@@ -66,10 +66,6 @@ public:
 
     g.textureMix(0);
     g.uniformColorMix(0);
-    g.lightingMix(1);
-    g.ambientBrightness(0.2);
-    g.lightIntensity(1, 0, 0, 0);
-    g.lightPos(100 * cosf(6 * sec()), 0, 100 * sinf(6 * sec()));
 
     g.pushMatrix();
     g.translate(sinf(sec()), 0, -10);
@@ -99,14 +95,15 @@ public:
     // draw 3D scene
     g.uniformColorMix(0);
     g.textureMix(1);
-    g.lightingMix(0);
-    g.texture(easyfbo.tex());
+    // bind tex to 0 and tell graphics to use binding point 0
+    easyfbo.tex().bind(0);
+    g.texture(0);
+    // g.texture(easyfbo.tex()); // this is short version
     g.draw(m);
 
     // then draw overlay 2D
     g.uniformColorMix(1);
-    g.textureMix(0, 0, 0, 0);
-    g.lightingMix(0);
+    g.textureMix(0);
 
     g.polygonMode(Graphics::FILL);
     for (int j = 0; j < 3; j += 1) {
@@ -118,8 +115,6 @@ public:
         g.popMatrix();
       }
     }
-
-    // end of onDraw
   }
 
 };

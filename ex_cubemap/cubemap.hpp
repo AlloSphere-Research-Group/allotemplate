@@ -200,7 +200,6 @@ public:
     cubeshader_.begin();
     cubeshader_.uniform("tex0", 0);
     cubeshader_.uniform("tex0_mix", 0.0);
-    cubeshader_.uniform("light_mix", 0.0f);
     cubeshader_.uniform("omni_radius", radius_);
     cubeshader_.end();
   }
