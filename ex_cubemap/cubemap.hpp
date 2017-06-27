@@ -198,8 +198,6 @@ public:
     fbo_.unbind();
     cubeshader_.compile(cubevert(), cubefrag());
     cubeshader_.begin();
-    cubeshader_.uniform("tex0", 0);
-    cubeshader_.uniform("tex0_mix", 0.0);
     cubeshader_.uniform("omni_radius", radius_);
     cubeshader_.end();
   }
@@ -224,7 +222,6 @@ public:
 
   void end() {
     g->framebuffer(FBO::DEFAULT);
-    //fbo_.unbind();
   }
 
   void view(Viewpoint& v) {
@@ -242,10 +239,6 @@ public:
     // vertex shader doesn't use mvp matrix.
     // draw methos fills the viewport
     sampleshader_.compile(cubesamplevert(), cubetexsamplefrag());
-    sampleshader_.begin();
-    sampleshader_.uniform("sample_tex", 0);
-    sampleshader_.uniform("cubemap", 1);
-    sampleshader_.end();
   }
 
   void sampleTexture(Texture& sample_texture) {
@@ -258,8 +251,8 @@ public:
 
   void set_shader_and_texture(Graphics& g) {
     g.shader(sampleshader_);
-    g.texture(*cubesampletex_, 0);
-    g.texture(*cubemap_, 1);
+    sampleshader_.uniform("sample_tex", cubesampletex_->bindingPoint());
+    sampleshader_.uniform("cubemap", cubemap_->bindingPoint());
   }
 };
 

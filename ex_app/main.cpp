@@ -15,6 +15,8 @@ class MyApp : public App {
 public:
   Graphics g {*this};
 
+  Texture tex0, tex1, tex2;
+
   void onInit() {
     cout << "onInit: after glfw init, before window creation" << endl;
     // so you can do things like
@@ -27,6 +29,10 @@ public:
 
   void onCreate() {
     cout << "onCreate: after window creation" << endl;
+    tex0.create2D(512, 512);
+    tex1.create2D(512, 512);
+    tex2.create2D(512, 512);
+    tex1.bind(tex0.bindingPoint());
   }
 
   void onAnimate(double dt) {
@@ -52,7 +58,7 @@ public:
   }
 
   void onExit() {
-    cout << "onExit: before assets are destroyed" << endl;
+    cout << "onExit: before gl assets are destroyed" << endl;
   }
 
   void onMouseDown(Mouse const& m) {

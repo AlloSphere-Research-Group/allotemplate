@@ -52,10 +52,7 @@ public:
             arr[4 * idx + 3] = 0.0f;
         }
     }
-    cubesampletex.bind();
     cubesampletex.submit(arr.data()); // give raw pointer
-    cubesampletex.update();
-    cubesampletex.unbind();
 
     cube_sampler.init();
     cube_sampler.sampleTexture(cubesampletex);
@@ -64,7 +61,6 @@ public:
 
   void onAnimate(double dt) {
       nav.step();
-      
   }
 
   void onDraw() {

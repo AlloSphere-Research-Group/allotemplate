@@ -95,10 +95,7 @@ public:
     // draw 3D scene
     g.uniformColorMix(0);
     g.textureMix(1);
-    // bind tex to 0 and tell graphics to use binding point 0
-    easyfbo.tex().bind(0);
-    g.texture(0);
-    // g.texture(easyfbo.tex()); // this is short version
+    g.texture(easyfbo.tex(), 0);
     g.draw(m);
 
     // then draw overlay 2D

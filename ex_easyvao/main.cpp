@@ -27,6 +27,8 @@ public:
     VAOMesh mesh;
     vec3 pos[3];
     bool flag {false};
+    VAOMesh m0;
+    VAOMesh m1;
 
     void onCreate()
     {
@@ -45,6 +47,17 @@ public:
         mesh.vertex(350, 50, 0);
         mesh.vertex(200, 100, 0);
         mesh.update();
+
+        m0.primitive(Mesh::TRIANGLES);
+        m0.vertex(10, 10, 0);
+        m0.vertex(200, 50, 0);
+        m0.vertex(50, 100, 0);
+        m0.update();
+        m1 = m0;
+        m0.vertices()[0] = Vec3f(50, 50, 0);
+        m0.update();
+        cout << m0.vertices()[0].x << endl;
+        cout << m1.vertices()[0].x << endl;
     }
 
     void onAnimate(double dt)
@@ -61,11 +74,13 @@ public:
         g.uniformColorMix(1);
         g.update();
         if (flag) {
-            g.draw(vao);
+            // g.draw(vao);
+            g.draw(m1);
             // vao.draw();
         }
         else {
-            g.draw(mesh);
+            g.draw(m0);
+            // g.draw(mesh);
             // mesh.draw();
         }
     }
