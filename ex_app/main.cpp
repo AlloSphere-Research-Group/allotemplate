@@ -17,6 +17,10 @@ public:
 
   Texture tex0, tex1, tex2;
 
+  osc::Send send {9001, "127.0.0.1"};
+  // osc::Recv server { 16447, "", 0.05 };
+  osc::Recv server { 16447};
+
   void onInit() {
     cout << "onInit: after glfw init, before window creation" << endl;
     // so you can do things like
@@ -32,7 +36,23 @@ public:
     tex0.create2D(512, 512);
     tex1.create2D(512, 512);
     tex2.create2D(512, 512);
-    tex1.bind(tex0.bindingPoint());
+    tex1.bind(1);
+
+    send.send("/test", "hello", 1);
+
+    server.handler(*this);
+    server.start();
+  }
+
+  void onMessage(osc::Message& m) {
+    std::cout << "received!" << std::endl;
+    if (m.addressPattern() == "/test") {
+        // Extract the data out of the packet
+        std::string str;
+        m >> str;
+        // Print out the extracted packet data
+        std::cout << "SERVER: recv " << str << endl;
+    }
   }
 
   void onAnimate(double dt) {

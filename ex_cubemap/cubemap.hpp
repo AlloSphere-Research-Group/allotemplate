@@ -8,8 +8,15 @@
 #include "al/core/gl/al_Texture.hpp"
 #include "al/core/gl/al_VAOMesh.hpp"
 #include "al/core/gl/al_Graphics.hpp"
+#include "al/core/gl/al_Shapes.hpp"
 
 namespace al {
+
+class CubeRenderConstants {
+public:
+  static int const sampletex_binding_point = 10;
+  static int const cubemap_bidning_point = 11;
+};
 
 inline std::string cubevert() { return R"(
 #version 330
@@ -234,25 +241,36 @@ public:
   Texture* cubemap_;
   Texture* cubesampletex_;
   ShaderProgram sampleshader_;
+  VAOMesh texquad;
 
   void init() {
     // vertex shader doesn't use mvp matrix.
     // draw methos fills the viewport
     sampleshader_.compile(cubesamplevert(), cubetexsamplefrag());
+    sampleshader_.begin();
+    sampleshader_.uniform("sample_tex", CubeRenderConstants::sampletex_binding_point);
+    sampleshader_.uniform("cubemap", CubeRenderConstants::cubemap_bidning_point);
+    sampleshader_.end();
+
+    // prepare textured quad to fill viewport with the result
+    addTexQuad(texquad);
+    texquad.update();
   }
 
   void sampleTexture(Texture& sample_texture) {
     cubesampletex_ = &sample_texture;
+    cubesampletex_->bind(CubeRenderConstants::sampletex_binding_point);
   }
 
   void cubemap(Texture& cubemap_texture) {
     cubemap_ = &cubemap_texture;
+    cubemap_->bind(CubeRenderConstants::cubemap_bidning_point);
   }
 
-  void set_shader_and_texture(Graphics& g) {
+  void draw(Graphics& g) {
     g.shader(sampleshader_);
-    sampleshader_.uniform("sample_tex", cubesampletex_->bindingPoint());
-    sampleshader_.uniform("cubemap", cubemap_->bindingPoint());
+    g.camera(Viewpoint::IDENTITY);
+    g.draw(texquad); // fill viewport
   }
 };
 
