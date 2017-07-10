@@ -661,7 +661,7 @@ void al_draw_glv(
 	g.blending(true);
 	g.blendModeTrans();
 	g.uniformColorMix(1);
-    g.textureMix(0, 0, 0, 0);
+    g.textureMix(0);
 	g.polygonMode(al::Graphics::FILL);
 	g.cullFace(false);
 	g.camera(
