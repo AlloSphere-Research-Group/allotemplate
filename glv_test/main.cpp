@@ -122,7 +122,7 @@ void onCreate() {
     g.scale(1, -1);
     g.blending(false);
     g.depthTesting(false);
-    g.textureMix(0, 0, 0, 0);
+    g.textureMix(0);
     g.uniformColorMix(1);
     glv::color(1, 0, 0, 1);
     glv::rectangle(100, 100, 200, 200);
