@@ -82,7 +82,7 @@ cd ${APP_PATH}
 mkdir -p build
 cd build
 # if app is run with this script, al_path is set here
-# if run.sh script was not used, CMakeList sets it to default value
+# if this script was not used, cmake will set it to value user provided
 cmake ${APP_PATH}/ -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -Dal_path=${ALPROJ_PATH}/al_lib
 make
 APP_BUILD_RESULT=$?

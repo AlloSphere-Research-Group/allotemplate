@@ -117,6 +117,9 @@ public:
 };
 
 int main() {
+  #ifdef WTF
+  stc::cout << "reaaly?" << std::endl;
+  #endif
   MyApp app;
   app.dimensions(720, 640);
   app.start(); // blocks

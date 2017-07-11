@@ -517,13 +517,106 @@ void Label::onDraw(GLV& g){
 
 void NumberDialers::fitExtent() {
 	//static bool print_once = [](){ std::cout << "NumberDialers::fitExtent" << std::endl; return true; }();
-
+	extent(
+		// pix(sizeX() * (paddingX()*2 + (numDigits() * font().advance('M'))) + 1),
+		pix(sizeX() * (paddingX() + (numDigits() * font().advance('M')))),
+		pix(sizeY() * (paddingY()*2 + font().cap()))
+	);
 }
 
 
 void NumberDialers::onDraw(GLV& g) {
 	//static bool print_once = [](){ std::cout << "NumberDialers::onDraw" << std::endl; return true; }();
+	// using namespace glv::draw;
 
+	fitExtent();
+
+	float dxCell= dx();
+	float dyCell= dy();
+	float dxDig = font().advance('M');
+
+//	View::enable(DrawSelectionBox);
+//	View::enable(DrawGrid);
+
+	// draw box at position (only if focused)
+	if(enabled(Focused)){
+
+		float x = dxCell*selectedX() + paddingX()/1 - 1;
+		//float y = dyCell*selectedY() + paddingY()/2;
+		float y = dyCell*(selectedY()+0.5);
+		float ty= font().cap()/2. + 3;
+
+//		color(colors().fore, colors().fore.a*0.4);
+		color(colors().selection);
+		//rectangle(bx + dig()*dxDig, by, bx + (dig()+1)*dxDig, by + dyCell-0.5f);
+		rectangle(x + dig()*dxDig, y-ty, x + (dig()+1)*dxDig, y+ty);
+	}
+
+	drawSelectionBox();
+	// drawGrid(g.graphicsData());
+	drawGrid();
+
+	// lineWidth(1);
+
+	if(mTextEntryMode){
+		mTextEntry.extent(dxCell, dyCell);
+		mTextEntry.pos(dxCell*selectedX(), dyCell*selectedY());
+	}
+
+	for(int i=0; i<sizeX(); ++i){
+		for(int j=0; j<sizeY(); ++j){
+
+			float cx = dxCell*i;	// left edge of cell
+			float cy = dyCell*j;	// top edge of cell
+
+			// draw number
+			long long vali = valInt(i,j);
+			unsigned long absVal = vali < 0 ? -vali : vali;
+			int msd = mNF;	// position from right of most significant digit
+
+			if(absVal > 0){
+				msd = (int)log10((double)absVal);
+				int p = numDigits() - (mShowSign ? 2:1);
+				msd = msd < mNF ? mNF : (msd > p ? p : msd);
+			}
+
+			if(mNI == 0) msd-=1;
+
+			// Determine digit string
+			char str[32];
+			int ic = numDigits();
+			str[ic] = '\0';
+			for(int i=0; i<numDigits(); ++i) str[i]=' ';
+
+			if(mShowSign && vali < 0) str[0] = '-';
+
+			unsigned long long power = 1;
+			bool drawChar = false; // don't draw until non-zero or past decimal point
+
+			for(int i=0; i<=msd; ++i){
+				char c = '0' + (absVal % (power*10))/power;
+				power *= 10;
+				if(c!='0' || i>=mNF) drawChar = true;
+				--ic;
+				if(drawChar) str[ic] = c;
+			}
+
+			// Draw the digit string
+			float tx = int(cx + paddingX());
+			float ty = int(cy + paddingY());
+
+			if(vali || !dimZero()){
+				color(colors().text);
+			} else {
+				color(colors().text.mix(colors().back, 0.8));
+			}
+		//	printf("%s\n", str);
+//			font().render(g.graphicsData(), str, pixc(tx), pixc(ty));
+//			if(mNF>0) font().render(g.graphicsData(), ".", pixc(dxDig*(mNI+numSignDigits()-0.5f) + tx), pixc(ty));
+			font().render(g.graphicsData(), str, tx, ty);
+			if(mNF>0) font().render(g.graphicsData(), ".", dxDig*(mNI+numSignDigits()-0.5f) + tx, ty);
+		}
+	}
 }
 
 void DropDown::onDraw(GLV& g){
@@ -545,7 +638,19 @@ void TextView::onDraw(GLV& g){
 }
 
 void Table::onDraw(GLV& g){
-
+	if(enabled(DrawGrid)){
+		color(colors().border);
+		// lineWidth(1);
+		for(unsigned i=0; i<mCells.size(); ++i){
+			space_t cl,ct,cr,cb;
+			getCellDim(i, cl,ct,cr,cb);
+			cl -= mPad1/2;
+			cr += mPad1/2;
+			ct -= mPad2/2;
+			cb += mPad2/2;
+			frame(cl,ct,cr,cb);
+		}
+	}
 }
 
 void Scroll::onDraw(GLV& g){
@@ -555,13 +660,12 @@ void Scroll::onDraw(GLV& g){
 void Divider::onDraw(GLV& g){
 }
 
-// -----------------------------------------------------------------------------
-#ifdef DONT_COMMENT_OUT
+
 
 void Buttons::onDraw(GLV& g){
 	Widget::onDraw(g);
 
-	using namespace glv::draw;
+	// using namespace glv::draw;
 
 	float xd = dx();
 	float yd = dy();
@@ -569,24 +673,25 @@ void Buttons::onDraw(GLV& g){
 	float pady = paddingY();
 	color(colors().fore);
 	
-	stroke(1);
+	// stroke(1);
 
 	for (int i=0; i<sizeX(); ++i) {
 		float x = xd*i + padx;
 		for (int j=0; j<sizeY(); ++j) {
 			float y = yd*j + pady;
 			if (getValue(i,j)) {
-				// on
-				if(mSymOn ) mSymOn (x, y, x+xd-padx*2, y+yd-pady*2);
+				rectangle (x, y, x+xd-padx*2, y+yd-pady*2);
 			}
 			else {
 				// off
-				if(mSymOff) mSymOff(x, y, x+xd-padx*2, y+yd-pady*2);
 			}
 		}		
 	}
 	
 }
+
+// -----------------------------------------------------------------------------
+#ifdef DONT_COMMENT_OUT
 
 void Slider2D::onDraw(GLV& g) {
 
