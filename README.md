@@ -21,6 +21,6 @@ WINDOWS
 
 generate VS2015 projects
 
-- run cmake for al_lib and build the library,
+- run cmake for allib and build the library,
 
 - run cmake for project folder and work in visual studio solution.

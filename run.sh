@@ -16,5 +16,5 @@ else
   AL_PROJ_PATH=${INITIALDIR}/${SCRIPT_PATH}
 fi
 
-# forward to al_lib run script
-${AL_PROJ_PATH}/al_lib/run.sh $@
+# forward to allolib run script
+${AL_PROJ_PATH}/allolib/run.sh $@
