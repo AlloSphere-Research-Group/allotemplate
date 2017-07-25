@@ -1,4 +1,6 @@
-# al_proj
+# allotemplate
+
+templates for apps using allolib
 
 initialize repo with
 
