@@ -24,7 +24,8 @@ public:
     Graphics g {*this};
     ShaderProgram shader;
     EasyVAO vao;
-    VAOMesh mesh;
+    Mesh mesh;
+    // VAOMesh mesh;
     vec3 pos[3];
     bool flag {false};
     VAOMesh m0;
@@ -38,15 +39,17 @@ public:
         pos[1] = vec3(200, 50, 0);
         pos[2] = vec3(50, 100, 0);
 
-        vao.primitive(GL_LINE_STRIP);
+        // vao.primitive(GL_LINE_STRIP);
+        vao.primitive(GL_TRIANGLES);
         vao.updatePosition(pos, 3);
 
-        mesh.primitive(Mesh::TRIANGLES);
+        // mesh.primitive(Mesh::TRIANGLES);
+        mesh.primitive(Mesh::LINE_STRIP);
         mesh.reset();
-        mesh.vertex(200, 50, 0);
-        mesh.vertex(350, 50, 0);
-        mesh.vertex(200, 100, 0);
-        mesh.update();
+        mesh.vertex(100, 50, 0);
+        mesh.vertex(250, 50, 0);
+        mesh.vertex(100, 100, 0);
+        // mesh.update();
 
         m0.primitive(Mesh::TRIANGLES);
         m0.vertex(10, 10, 0);
@@ -72,15 +75,16 @@ public:
         g.camera(Viewpoint::ORTHO_FOR_2D);
         g.uniformColor(1, 0.5, 0.2);
         g.uniformColorMix(1);
+        g.cullFace(false);
         g.update();
         if (flag) {
-            // g.draw(vao);
-            g.draw(m1);
+            g.draw(vao);
+            // g.draw(m0);
             // vao.draw();
         }
         else {
-            g.draw(m0);
-            // g.draw(mesh);
+            // g.draw(m0);
+            g.draw(mesh);
             // mesh.draw();
         }
     }
