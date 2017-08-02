@@ -33,7 +33,7 @@ public:
 
     void onCreate()
     {
-        shader.compile(al_default_vert_shader(), al_default_frag_shader());
+        shader.compile(al_color_vert_shader(), al_color_frag_shader());
 
         pos[0] = vec3(50, 50, 0);
         pos[1] = vec3(200, 50, 0);
@@ -73,10 +73,8 @@ public:
         g.clearColor(1, 1, 1);
         g.shader(shader);
         g.camera(Viewpoint::ORTHO_FOR_2D);
-        g.uniformColor(1, 0.5, 0.2);
-        g.uniformColorMix(1);
+        g.shader().uniform("col0", Color(1, 0.5, 0.2));
         g.cullFace(false);
-        g.update();
         if (flag) {
             g.draw(vao);
             // g.draw(m0);

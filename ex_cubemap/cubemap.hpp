@@ -211,8 +211,8 @@ public:
 
   void begin(Graphics& graphics) {
     g = &graphics;
-    //fbo_.bind();
-    g->framebuffer(fbo_);
+    fbo_.bind();
+    // g->framebuffer(fbo_);
     g->shader(cubeshader_);
     g->camera(view_);
   }
@@ -228,7 +228,8 @@ public:
   }
 
   void end() {
-    g->framebuffer(FBO::DEFAULT);
+    fbo_.unbind();
+    // g->framebuffer(FBO::DEFAULT);
   }
 
   void view(Viewpoint& v) {

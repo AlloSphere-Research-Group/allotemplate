@@ -1,4 +1,5 @@
 #include "al/core.hpp"
+#include <array>
 
 using namespace al;
 using namespace std;
@@ -9,21 +10,21 @@ float const h = 256;
 class MyApp : public EasyApp {
 public:
   EasyFBO fbo;
-  Viewpoint fboView;
+  Viewpoint fboView; // camera to use when drawing to fbo
   Mesh mesh;
+  Mesh texRect; // to display fbo texture
 
   void onCreate() {
     fbo.init(w, h);
 
     addIcosahedron(mesh);
 
-    // camera to use when drawing to fbo
-    fboView.pos(Vec3f(0, 0, 10)).faceToward(Vec3f(0, 0, 0), Vec3f(0, 1, 0));
-    fboView.fovy(30).near(0.1).far(100);
+    fboView.pos(Vec3f(0, 0, 10));
     fboView.viewport(0, 0, w, h); // same as our fbo
-
     // make keyboard navigation control fboView
     nav.target(fboView);
+
+    addTexRect(texRect, 50, 50, 500, 500);
   }
 
   void onAnimate(double dt) {
@@ -31,20 +32,21 @@ public:
   }
 
   void onDraw() {
-    g.framebuffer(fbo);
-    g.clear(0, 1, 0);
-
+    fbo.begin();
+    g.clear(0, 1, 1);
+    g.shader(color_shader);
+    g.shader().uniform("col0", Color(1, 0, 0));
     g.camera(fboView);
-    g.uniformColorMix(1);
-    g.uniformColor(1, 0, 0);
-    g.textureMix(0);
     g.draw(mesh);
+    fbo.end();
 
-    g.framebuffer(FBO::DEFAULT);
     g.clear(0, 0, 1);
-    
+    g.shader(tex_shader);
     g.camera(Viewpoint::ORTHO_FOR_2D); // for 2D display of fbo texture
-    g.draw(fbo, 50, 50, width() - 100, height() - 100);
+    fbo.tex().bind(0);
+    g.shader().uniform("tex0", 0);
+    g.draw(texRect);
+    fbo.tex().unbind(0);
   }
 
 };
