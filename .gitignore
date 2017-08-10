@@ -6,5 +6,9 @@
 !*/bin/data/
 
 */build/
+*/xcode/
 
 *.log
+
+*.sublime-project
+*.sublime-workspace
