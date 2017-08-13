@@ -19,6 +19,9 @@ std::string file_to_string(std::string path) {
   };
 }
 
+// for sorting the FileList
+bool sort(al::FilePath a, al::FilePath b){ return a.filepath() < b.filepath();}
+
 using namespace al;
 using namespace std;
 
@@ -27,7 +30,17 @@ public:
   Graphics g {*this};
   
   void onCreate() {
-    cout << file_to_string("data/test.txt") << endl;
+    cout << "file content: " << file_to_string("data/test.txt") << endl;
+
+    SearchPaths searchPaths;
+    searchPaths.addSearchPath("./data");
+
+    // matches .png .jpg files and adds them to a FileList
+    // FileList files = searchPaths.glob("(.*)\\.(png|jpg)");
+    FileList files = searchPaths.listAll();
+    cout << "Matched file count: " << files.count() << endl;
+    files.sort(sort); // sort files by filepath
+    files.print();
   }
 
   void onAnimate(double dt) {
