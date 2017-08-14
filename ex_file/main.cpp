@@ -40,8 +40,6 @@ public:
     SearchPaths searchPaths;
     searchPaths.addSearchPath(".");
 
-    // matches .png .jpg files and adds them to a FileList
-    // FileList files = searchPaths.glob("(.*)\\.(png|jpg)");
     FileList files = searchPaths.listAll();
     cout << "Matched file count: " << files.count() << endl;
     files.sort(sort); // sort files by filepath
@@ -54,17 +52,23 @@ public:
     }
     cout << "------------------------" << endl;
 
-    auto searchedFile = searchPaths.find("zzFile.png");
-    if (searchedFile.valid()) {
-      cout << "found: " << searchedFile.filepath() << endl;
-    }
-    cout << "------------------------" << endl;
-
     auto result = File::remove("./data/zFile0.png");
     if (result) {
       cout << "removed a file" << endl;
     }
+	cout << "------------------------" << endl;
 
+	auto filtered = filterInDir(".", [](FilePath const& p) -> bool {
+		return checkExtension(p, ".exe");
+	});
+	filtered.print();
+	cout << "------------------------" << endl;
+
+	auto searchPathFiltered = searchPaths.filter([](FilePath const& p) -> bool {
+		return checkExtension(p, ".exe");
+	});
+	searchPathFiltered.print();
+	cout << "------------------------" << endl;
   }
 
   void onAnimate(double dt) {
