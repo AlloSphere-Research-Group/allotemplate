@@ -31,9 +31,14 @@ public:
   
   void onCreate() {
     cout << "file content: " << file_to_string("data/test.txt") << endl;
+    cout << "------------------------" << endl;
+
+    auto list = fileListFromDir(".");
+    list.print();
+    cout << "------------------------" << endl;
 
     SearchPaths searchPaths;
-    searchPaths.addSearchPath("./data");
+    searchPaths.addSearchPath(".");
 
     // matches .png .jpg files and adds them to a FileList
     // FileList files = searchPaths.glob("(.*)\\.(png|jpg)");
@@ -41,6 +46,25 @@ public:
     cout << "Matched file count: " << files.count() << endl;
     files.sort(sort); // sort files by filepath
     files.print();
+    cout << "------------------------" << endl;
+
+    auto search = searchFileFromDir("zFile.png", ".");
+    if (search.valid()) {
+      cout << "found: " << search.filepath() << endl;
+    }
+    cout << "------------------------" << endl;
+
+    auto searchedFile = searchPaths.find("zzFile.png");
+    if (searchedFile.valid()) {
+      cout << "found: " << searchedFile.filepath() << endl;
+    }
+    cout << "------------------------" << endl;
+
+    auto result = File::remove("./data/zFile0.png");
+    if (result) {
+      cout << "removed a file" << endl;
+    }
+
   }
 
   void onAnimate(double dt) {
