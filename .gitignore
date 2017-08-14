@@ -12,3 +12,4 @@
 
 *.sublime-project
 *.sublime-workspace
+*/.vs/
