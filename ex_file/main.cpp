@@ -33,11 +33,19 @@ public:
     cout << "file content: " << file_to_string("data/test.txt") << endl;
     cout << "------------------------" << endl;
 
+	cout << "test.txt exists?: " << File::exists("data/test.txt") << endl;
+	cout << "test2.txt exists?: " << File::exists("data/test2.txt") << endl;
+	cout << "data exists?: " << File::exists("data") << endl;
+	cout << "data2 exists?: " << File::exists("data2") << endl;
+	cout << "data/ exists?: " << File::exists("data/") << endl;
+	cout << "data2/ exists?: " << File::exists("data2/") << endl;
+
     auto list = fileListFromDir(".");
     list.print();
     cout << "------------------------" << endl;
 
     SearchPaths searchPaths;
+
     searchPaths.addSearchPath(".");
 
     FileList files = searchPaths.listAll();
