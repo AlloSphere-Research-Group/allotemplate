@@ -27,7 +27,7 @@ using namespace std;
 
 class MyApp : public App {
 public:
-  Graphics g {*this};
+  Graphics g {this};
   
   void onCreate() {
     cout << "file content: " << file_to_string("data/test.txt") << endl;

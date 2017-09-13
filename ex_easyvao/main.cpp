@@ -21,7 +21,7 @@ class MyApp : public App
 {
 public:
 
-    Graphics g {*this};
+    Graphics g {this};
     ShaderProgram shader;
     EasyVAO vao;
     Mesh mesh;

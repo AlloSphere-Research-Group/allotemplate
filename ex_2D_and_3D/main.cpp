@@ -19,7 +19,7 @@ public:
   ShaderProgram color_shader;
   ShaderProgram tex_shader;
   VAOMesh mesh_2d, mesh_3d, texRect;
-  Graphics g {*this};
+  Graphics g {this};
   EasyFBO fbo;
 
   void onCreate() {

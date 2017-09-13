@@ -15,7 +15,7 @@ public:
   VAOMesh mesh;
   Texture cubesampletex;
   PerProjectionRender pp_render;
-  Graphics g {*this};
+  Graphics g {this};
 
   void onCreate() {
     // Load the calibration data first

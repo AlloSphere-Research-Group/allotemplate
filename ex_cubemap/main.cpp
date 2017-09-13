@@ -16,7 +16,7 @@ public:
   Texture cubesampletex;
   CubeRender cube_render;
   CubeSampler cube_sampler;
-  Graphics g {*this};
+  Graphics g {this};
 
   void onCreate() {
     append(nav.target(cube_render.view_));

@@ -9,7 +9,7 @@ using namespace std;
 
 class MyApp : public App {
 public:
-  Graphics g {*this};
+  Graphics g {this};
   om::Config config;
   void onCreate() {
     config.load("data/projectorConfigurationTemplate.txt");

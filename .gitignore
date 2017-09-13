@@ -5,6 +5,8 @@
 # while not ignoring things inside bin/data
 !*/bin/data/
 
+user/
+
 */build/
 */xcode/
 
@@ -13,3 +15,16 @@
 *.sublime-project
 *.sublime-workspace
 */.vs/
+
+*.png
+*.PNG
+*.gif
+*.GIF
+*.jpg
+*.JPG
+*.jpeg
+*.JPEG
+*.tiff
+*.TIFF
+*.bmp
+*.BMP

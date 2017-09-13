@@ -13,7 +13,7 @@ bool first_frame = true;
 
 class MyApp : public App {
 public:
-  Graphics g {*this};
+  Graphics g {this};
 
   Texture tex0, tex1, tex2;
 
@@ -28,7 +28,7 @@ public:
     const GLFWvidmode* mode = glfwGetVideoMode(primary);
     // change dimensions depending on the monitor resolution
     dimensions(mode->width / 4, mode->height / 2);
-    decorated(false);
+    // decorated(false);
   }
 
   void onCreate() {

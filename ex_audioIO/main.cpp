@@ -10,7 +10,7 @@ using namespace std;
 
 class MyApp : public App {
 public:
-  Graphics g {*this};
+  Graphics g {this};
 
   void onCreate() {
 

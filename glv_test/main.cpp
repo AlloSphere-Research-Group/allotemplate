@@ -12,7 +12,7 @@ using namespace std;
 class MyApp : public App {
 public:
     ShaderProgram shader;
-    Graphics g {*this};
+    Graphics g {this};
 
     GlvGui glvGui{*this};
     SliderWithLabel labelSlider01{ "long test name 01", 10, 100 };
