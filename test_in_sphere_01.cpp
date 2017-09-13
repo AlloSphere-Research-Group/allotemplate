@@ -11,9 +11,30 @@ public:
 
   void onInit()
   {
-    GLFWmonitor* primary = glfwGetPrimaryMonitor();
-    const GLFWvidmode* mode = glfwGetVideoMode(primary);
-    dimensions(0, 0, mode->width, mode->height);
+    // GLFWmonitor* primary = glfwGetPrimaryMonitor();
+    // const GLFWvidmode* mode = glfwGetVideoMode(primary);
+    // dimensions(0, 0, mode->width, mode->height);
+
+    // Correct Window Size in AlloSphere
+    // (glfw can't see mosaic)
+    // Donghao's awesome window size finder
+    int count;
+    GLFWmonitor** monitors = glfwGetMonitors(&count);
+    // printf("monitor count: %d\n", count);
+
+    int width = 0;
+    int height = 0;
+    for(int i = 0; i < count; i++) {
+        int x, y;
+        glfwGetMonitorPos(monitors[i], &x, &y);
+        const GLFWvidmode* vm = glfwGetVideoMode(monitors[i]);
+        int xmax = x + vm->width;
+        int ymax = y + vm->height;
+        if(width < xmax) width = xmax;
+        if(height < ymax) height = ymax;
+    }
+
+    dimensions(0, 0, width, height);
   }
 
   void onCreate()
