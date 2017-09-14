@@ -14,8 +14,8 @@ namespace al {
 
 class CubeRenderConstants {
 public:
-  static int const sampletex_binding_point = 10;
-  static int const cubemap_bidning_point = 11;
+  static int const sampletex_binding_point = 20;
+  static int const cubemap_binding_point = 21;
 };
 
 inline std::string cubevert() { return R"(
@@ -100,6 +100,20 @@ void main() {
 }
 )";}
 
+inline std::string cubetexsamplefrag() { return R"(
+#version 330
+uniform sampler2D sample_tex;
+uniform samplerCube cubemap;
+in vec2 texcoord_;
+out vec4 frag_color;
+void main() {
+  vec3 dir = texture(sample_tex, texcoord_).rgb;
+  vec4 cube_color = texture(cubemap, dir);
+  frag_color = cube_color;
+}
+)";}
+
+
 inline std::string equirect_cubesample_frag() { return R"(
 #version 330
 uniform samplerCube cubemap;
@@ -114,18 +128,6 @@ void main() {
 }
 )";}
 
-inline std::string cubetexsamplefrag() { return R"(
-#version 330
-uniform sampler2D sample_tex;
-uniform samplerCube cubemap;
-in vec2 texcoord_;
-out vec4 frag_color;
-void main() {
-  vec3 dir = texture(sample_tex, texcoord_).rgb;
-  vec4 cube_color = texture(cubemap, dir);
-  frag_color = cube_color;
-}
-)";}
 
 Mat4f get_cube_mat(int face) {
   switch (face) {
@@ -183,75 +185,80 @@ Mat4f get_cube_mat(int face) {
 
 class CubeRender {
 public:
-  int res_;
-  Viewpoint view_;
-  Texture cubemap_;
-  RBO rbo_;
-  FBO fbo_;
-  ShaderProgram cubeshader_;
-  float radius_;
+  int res;
+  Viewpoint view;
+  Texture cubemap;
+  RBO rbo;
+  FBO fbo;
+  ShaderProgram cubeshader;
+  float radius;
   Graphics* g;
 
-  void init(int res=1024, float near=0.1, float far=100, float radius = 1e10) {
-    res_ = res;
-    radius_ = radius;
-    view_.fovy(90).near(near).far(far);
-    view_.viewport(0, 0, res_, res_);
-    cubemap_.createCubemap(res_, GL_RGBA32F, GL_RGBA, GL_FLOAT);
-    rbo_.create(res_, res_);
-    fbo_.bind();
-    fbo_.attachCubemapFace(cubemap_, GL_TEXTURE_CUBE_MAP_POSITIVE_X);
-    fbo_.attachRBO(rbo_);
-    fbo_.unbind();
-    cubeshader_.compile(cubevert(), cubefrag());
-    cubeshader_.begin();
-    cubeshader_.uniform("omni_radius", radius_);
-    cubeshader_.end();
+  void init(int resolution=1024, float near=0.1, float far=100, float sphere_radius = 1e10) {
+    res = resolution;
+    radius = sphere_radius;
+    view.fovy(90).near(near).far(far);
+    view.viewport(0, 0, res, res);
+    cubemap.createCubemap(res, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
+    rbo.create(res, res);
+    fbo.bind();
+    fbo.attachCubemapFace(cubemap, GL_TEXTURE_CUBE_MAP_POSITIVE_X);
+    fbo.attachRBO(rbo);
+    fbo.unbind();
+    cubeshader.compile(cubevert(), cubefrag());
+    cubeshader.begin();
+    cubeshader.uniform("omni_radius", radius);
+    cubeshader.end();
   }
 
   void begin(Graphics& graphics) {
     g = &graphics;
-    fbo_.bind();
-    // g->framebuffer(fbo_);
-    g->shader(cubeshader_);
-    g->camera(view_);
+    fbo.bind();
+    g->shader(cubeshader);
+    g->camera(view);
   }
 
   void set_eye(int i) {
-    g->shader(cubeshader_);
+    if (!g) return;
     g->shader().uniform("omni_eyeSep", 0.0);
   }
 
   void set_face(int f) {
+    if (!g) return;
     g->shader().uniform("C", get_cube_mat(f));
-    fbo_.attachCubemapFace(cubemap_, GL_TEXTURE_CUBE_MAP_POSITIVE_X+f);
+    fbo.attachCubemapFace(cubemap, GL_TEXTURE_CUBE_MAP_POSITIVE_X+f);
   }
 
   void end() {
-    fbo_.unbind();
-    // g->framebuffer(FBO::DEFAULT);
+    if (!g) return;
+    fbo.unbind();
+    g = nullptr;
   }
 
-  void view(Viewpoint& v) {
-    view_.pose(v);
+  // void pose(Viewpoint& v) {
+  //   view.pose(v);
+  // }
+
+  void pose(Pose const& v) {
+    view.pose(v);
   }
 };
 
 class CubeSampler {
 public:
-  Texture* cubemap_;
-  Texture* cubesampletex_;
-  ShaderProgram sampleshader_;
+  Texture* cubemap_tex;
+  Texture* cubesample_tex;
+  ShaderProgram sampleshader;
   VAOMesh texquad;
 
   void init() {
     // vertex shader doesn't use mvp matrix.
     // draw methos fills the viewport
-    sampleshader_.compile(cubesamplevert(), cubetexsamplefrag());
-    sampleshader_.begin();
-    sampleshader_.uniform("sample_tex", CubeRenderConstants::sampletex_binding_point);
-    sampleshader_.uniform("cubemap", CubeRenderConstants::cubemap_bidning_point);
-    sampleshader_.end();
+    sampleshader.compile(cubesamplevert(), cubetexsamplefrag());
+    sampleshader.begin();
+    sampleshader.uniform("sample_tex", CubeRenderConstants::sampletex_binding_point);
+    sampleshader.uniform("cubemap", CubeRenderConstants::cubemap_binding_point);
+    sampleshader.end();
 
     // prepare textured quad to fill viewport with the result
     addTexQuad(texquad);
@@ -259,17 +266,17 @@ public:
   }
 
   void sampleTexture(Texture& sample_texture) {
-    cubesampletex_ = &sample_texture;
-    cubesampletex_->bind(CubeRenderConstants::sampletex_binding_point);
+    cubesample_tex = &sample_texture;
+    cubesample_tex->bind(CubeRenderConstants::sampletex_binding_point);
   }
 
   void cubemap(Texture& cubemap_texture) {
-    cubemap_ = &cubemap_texture;
-    cubemap_->bind(CubeRenderConstants::cubemap_bidning_point);
+    cubemap_tex = &cubemap_texture;
+    cubemap_tex->bind(CubeRenderConstants::cubemap_binding_point);
   }
 
   void draw(Graphics& g) {
-    g.shader(sampleshader_);
+    g.shader(sampleshader);
     g.camera(Viewpoint::IDENTITY);
     g.draw(texquad); // fill viewport
   }
