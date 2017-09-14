@@ -235,10 +235,6 @@ public:
     g = nullptr;
   }
 
-  // void pose(Viewpoint& v) {
-  //   view.pose(v);
-  // }
-
   void pose(Pose const& v) {
     view.pose(v);
   }

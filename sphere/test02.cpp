@@ -1,6 +1,8 @@
 #include "sphere_utils.hpp"
 #include "general_utils.hpp"
 #include "cubemap.hpp"
+#include "config.hpp"
+
 #include "al/core.hpp"
 
 #include <cmath>
@@ -16,9 +18,12 @@ public:
     Viewpoint view;
     NavInputControl nav;
     VAOMesh mesh;
+
     Texture cubesampletex;
     CubeRender cube_render;
     CubeSampler cube_sampler;
+
+    om::Config om_config;
 
     void onInit()
     {
@@ -42,22 +47,23 @@ public:
         nav.target(view);
 
         auto config_file_path = sphere::config_file_path("data/config.txt");
-        auto config_file_content = al_file_to_string(config_file_path);
-        cout << "config file read:"
-             << config_file_content << "\n\n----------" << endl;
+        om_config.load(config_file_path);
+        om_config.print();
+        om_config.loadData();
 
         if (sphere::is_renderer()) {
             cuberes = 2048;
         }
         cube_render.init(cuberes);
 
-        // we don't have warp/blend texture now
-        // so generate dummy sampling texture (equirectangular)
-        int sampletex_width = 4 * cuberes;
-        int sampletex_height = 2 * cuberes;
-        vector<float> arr = sphere::generate_equirect_sampletex(sampletex_width, sampletex_height);
-        cubesampletex.create2D(sampletex_width, sampletex_height, GL_RGBA32F, GL_RGBA, GL_FLOAT);
-        cubesampletex.submit(arr.data()); // give raw pointer
+        // int sampletex_width = 4 * cuberes;
+        // int sampletex_height = 2 * cuberes;
+        // vector<float> arr = sphere::generate_equirect_sampletex(sampletex_width, sampletex_height);
+        // cubesampletex.create2D(sampletex_width, sampletex_height, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+        // cubesampletex.submit(arr.data());
+
+        cubesampletex.create2D(om_config.width(1), om_config.height(1), GL_RGBA32F, GL_RGBA, GL_FLOAT);
+        cubesampletex.submit(om_config.data(1));
 
         cube_sampler.init();
         cube_sampler.sampleTexture(cubesampletex);
