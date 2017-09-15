@@ -4,15 +4,26 @@
 #include "al/core/gl/al_GLFW.hpp"
 #include "al/core/math/al_Constants.hpp"
 
-#include <unistd.h> // gethostname
 #include <string>
 #include <vector>
 #include <cmath>
 
+// gethostname
+#ifdef AL_WINDOWS
+    #include <Winsock2.h>
+#else
+    #include <unistd.h>
+#endif
+
+
 std::string al_get_hostname()
 {
     char hostname[256];
+#ifdef AL_WINDOWS
     gethostname(hostname, 256);
+#else
+    gethostname(hostname, 256);
+#endif
     return std::string {hostname};
 }
 
