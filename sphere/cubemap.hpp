@@ -110,8 +110,9 @@ uniform samplerCube cubemap;
 in vec2 texcoord_;
 out vec4 frag_color;
 void main() {
-  vec3 dir = texture(sample_tex, texcoord_).rgb;
-  vec4 cube_color = texture(cubemap, dir);
+  vec4 tex = texture(sample_tex, texcoord_);
+  vec4 cube_color = texture(cubemap, tex.rgb);
+  cube_color.rgb *= tex.a;
   frag_color = cube_color;
 }
 )";}
