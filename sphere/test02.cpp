@@ -6,9 +6,15 @@
 #include "al/core.hpp"
 
 #include <cmath>
+#include <vector>
 
 using namespace al;
 using namespace std;
+
+template<typename T0, typename T1, typename T2, typename T3>
+void println(T0 t0, T1 t1, T2 t2, T3 t3) {
+    std::cout << t0 << ' ' << t1 << ' ' << t2 << ' ' << t3 << std::endl;
+}
 
 class MyApp : public App {
 public:
@@ -19,9 +25,9 @@ public:
     NavInputControl nav;
     VAOMesh mesh;
 
-    Texture cubesampletex;
     CubeRender cube_render;
-    CubeSampler cube_sampler;
+    vector<unique_ptr<Texture>> cubesampletexs;
+    vector<CubeSampler> cube_samplers;
 
     om::Config om_config;
 
@@ -62,12 +68,19 @@ public:
         // cubesampletex.create2D(sampletex_width, sampletex_height, GL_RGBA32F, GL_RGBA, GL_FLOAT);
         // cubesampletex.submit(arr.data());
 
-        cubesampletex.create2D(om_config.width(1), om_config.height(1), GL_RGBA32F, GL_RGBA, GL_FLOAT);
-        cubesampletex.submit(om_config.data(1));
+        const int nProj = om_config.numProjectors();
+        cubesampletexs.resize(nProj);
+        cube_samplers.resize(nProj);
 
-        cube_sampler.init();
-        cube_sampler.sampleTexture(cubesampletex);
-        cube_sampler.cubemap(cube_render.cubemap);
+        for (int i = 0; i < nProj; i += 1) {
+            cubesampletexs[i] = make_unique<Texture>();
+            cubesampletexs[i]->create2D(om_config.width(i), om_config.height(i), GL_RGBA32F, GL_RGBA, GL_FLOAT);
+            cubesampletexs[i]->submit(om_config.data(i));
+
+            cube_samplers[i].init();
+            cube_samplers[i].sampleTexture(*cubesampletexs[i]);
+            cube_samplers[i].cubemap(cube_render.cubemap);
+        }
 
         addIcosahedron(mesh);
         auto num_verts = mesh.vertices().size();
@@ -110,7 +123,18 @@ public:
 
         // now sample cubemap and draw result to quad
         g.clear(0);
-        cube_sampler.draw(g);
+
+        float w = fbWidth();
+        float h = fbHeight();
+        g.scissorTest(true);
+        for (int i = 0 ; i < om_config.numProjectors(); i += 1) {
+            auto p = om_config.projector(i);
+            g.viewport(w * p.l, h * p.b, w * p.w, h * p.h);
+            g.scissor(w * p.l, h * p.b, w * p.w, h * p.h);
+            cube_samplers[i].draw(g);
+        }
+        g.viewport(0, 0, w, h);
+        g.scissorTest(false);
     }
 
 };

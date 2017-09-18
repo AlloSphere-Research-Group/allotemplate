@@ -333,7 +333,6 @@ public:
 
   void begin(Graphics& graphics) {
     g = &graphics;
-    // fbo_.bind();
     g->framebuffer(fbo_);
     g->shader(pp_shader_);
     g->camera(view_);
@@ -360,6 +359,7 @@ public:
 
   void end() {
     g->framebuffer(FBO::DEFAULT);
+    fbo_.end();
   }
 
   void view(Viewpoint& v) {

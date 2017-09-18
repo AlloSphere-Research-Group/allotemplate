@@ -10,6 +10,8 @@
 #include "al/core/gl/al_Graphics.hpp"
 #include "al/core/gl/al_Shapes.hpp"
 
+#include <mutex>
+
 namespace al {
 
 class CubeRenderConstants {
@@ -86,16 +88,17 @@ void main() {
 
 inline std::string cubesamplevert() { return R"(
 #version 330
-uniform mat4 MV;
-uniform mat4 P;
+// uniform mat4 MV;
+// uniform mat4 P;
 
-layout (location = 0) in vec3 position;
+layout (location = 0) in vec4 position;
 layout (location = 2) in vec2 texcoord;
 
 out vec2 texcoord_;
 
 void main() {
-  gl_Position = P * MV * vec4(position, 1.0);
+  // gl_Position = P * MV * vec4(position, 1.0);
+  gl_Position = position;
   texcoord_ = texcoord;
 }
 )";}
@@ -240,41 +243,57 @@ public:
   }
 };
 
+inline ShaderProgram* default_cubesample_shader() {
+  static ShaderProgram s;
+  static std::once_flag flag;
+  if (!gl::loaded()) return nullptr;
+  std::call_once(flag, [](){
+    s.compile(cubesamplevert(), cubetexsamplefrag());
+    s.begin();
+    s.uniform("sample_tex", CubeRenderConstants::sampletex_binding_point);
+    s.uniform("cubemap", CubeRenderConstants::cubemap_binding_point);
+    s.end();
+  });
+  return &s;
+}
+
 class CubeSampler {
 public:
   Texture* cubemap_tex;
   Texture* cubesample_tex;
-  ShaderProgram sampleshader;
+  ShaderProgram* sampleshader;
   VAOMesh texquad;
 
   void init() {
-    // vertex shader doesn't use mvp matrix.
-    // draw methos fills the viewport
-    sampleshader.compile(cubesamplevert(), cubetexsamplefrag());
-    sampleshader.begin();
-    sampleshader.uniform("sample_tex", CubeRenderConstants::sampletex_binding_point);
-    sampleshader.uniform("cubemap", CubeRenderConstants::cubemap_binding_point);
-    sampleshader.end();
-
-    // prepare textured quad to fill viewport with the result
+    sampleShader(default_cubesample_shader());
+    // textured quad to fill viewport with the result
     addTexQuad(texquad);
     texquad.update();
   }
 
+  void sampleShader(ShaderProgram* s) {
+    sampleshader = s;
+  }
+
+  void sampleShader(ShaderProgram& s) {
+    sampleshader = &s;
+  }
+
   void sampleTexture(Texture& sample_texture) {
     cubesample_tex = &sample_texture;
-    cubesample_tex->bind(CubeRenderConstants::sampletex_binding_point);
   }
 
   void cubemap(Texture& cubemap_texture) {
     cubemap_tex = &cubemap_texture;
-    cubemap_tex->bind(CubeRenderConstants::cubemap_binding_point);
   }
 
   void draw(Graphics& g) {
-    g.shader(sampleshader);
-    g.camera(Viewpoint::IDENTITY);
-    g.draw(texquad); // fill viewport
+    sampleshader->use();
+    cubesample_tex->bind(CubeRenderConstants::sampletex_binding_point);
+    cubemap_tex->bind(CubeRenderConstants::cubemap_binding_point);
+    texquad.draw();
+    cubesample_tex->unbind(CubeRenderConstants::sampletex_binding_point);
+    cubemap_tex->unbind(CubeRenderConstants::cubemap_binding_point);
   }
 };
 

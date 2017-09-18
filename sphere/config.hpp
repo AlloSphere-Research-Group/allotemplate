@@ -128,7 +128,6 @@ public:
         // int32_t elems = i.width * i.height;
         // i.data = (float *)malloc(sizeof(float) * elems * 4);
         // dataFile.read((char *)i.data, sizeof(float) * elems * 4);
-
       }
     }
 
@@ -143,6 +142,14 @@ public:
 
     int height(int i) {
         return mProjector[i].height;
+    }
+
+    int numProjectors() {
+        return mProjector.size();
+    }
+
+    Projector& projector(int i) {
+        return mProjector[i];
     }
 };
 
