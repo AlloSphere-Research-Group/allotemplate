@@ -32,14 +32,14 @@ public:
   }
 
   void onDraw() {
-    fbo.begin();
+    g.framebuffer(fbo);
     g.clear(0, 1, 1);
     g.shader(color_shader);
     g.shader().uniform("col0", Color(1, 0, 0));
     g.camera(fboView);
     g.draw(mesh);
-    fbo.end();
 
+    g.framebuffer(FBO::DEFAULT);
     g.clear(0, 0, 1);
     g.shader(tex_shader);
     g.camera(Viewpoint::ORTHO_FOR_2D); // for 2D display of fbo texture

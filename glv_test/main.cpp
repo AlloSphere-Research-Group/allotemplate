@@ -22,7 +22,7 @@ public:
     NumberDialerWithLabel ndl {"dialer", 1, 1};
 
     void onCreate() {
-        shader.compile(al_default_vert_shader(), al_default_frag_shader());
+        shader.compile(al_color_vert_shader(), al_color_frag_shader());
 
         glvGui.addSlider(labelSlider01);
         glvGui.addSlider(labelSlider02);
@@ -47,12 +47,13 @@ public:
     }
 
     void onDraw() {
+        g.framebuffer(FBO::DEFAULT);
         g.shader(shader);
         g.clearColor(0, 0, 0, 1);
         glvGui.draw(g);
     }
 
-    virtual void onKeyDown(Keyboard const& k) override {
+    virtual void onKeyDown(Keyboard const& k) {
         if (k.key() == '1') {
             glvGui.removeNumberDialer("my dialer");
         }

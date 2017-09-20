@@ -11,11 +11,6 @@
 using namespace al;
 using namespace std;
 
-template<typename T0, typename T1, typename T2, typename T3>
-void println(T0 t0, T1 t1, T2 t2, T3 t3) {
-    std::cout << t0 << ' ' << t1 << ' ' << t2 << ' ' << t3 << std::endl;
-}
-
 class MyApp : public App {
 public:
     int cuberes = 512;

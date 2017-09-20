@@ -62,7 +62,7 @@ public:
   void onDraw() {
 
     // draw 3D to offscreen
-    fbo.begin();
+    g.framebuffer(fbo);
     g.clear(0, 1, 1);
     g.shader(mesh_shader);
     g.camera(viewpoint);
@@ -79,8 +79,8 @@ public:
     g.draw(mesh_3d);
     g.popMatrix();
 
-    fbo.end();
 
+    g.framebuffer(FBO::DEFAULT);
     // now do 2d drawing to window's default framebuffer
     g.camera(Viewpoint::ORTHO_FOR_2D);
     g.clear(0.5, 0.5, 0.5);
