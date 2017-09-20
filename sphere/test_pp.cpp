@@ -20,6 +20,22 @@ public:
   PerProjectionRender pp_render;
   Graphics g {this};
 
+  void onInit()
+  {
+      if (sphere::is_renderer()) {
+          int width, height;
+          sphere::get_fullscreen_dimension(&width, &height);
+          if (width != 0 && height != 0) {
+              // cout << "width: " << width << " height: " << height << endl;
+              dimensions(0, 0, width, height);
+              decorated(false);
+          }
+          else {
+              cout << "[!] calculated width and/or height are/is zero!" << endl;
+          }
+      }
+  }
+
   void onCreate() {
     // Load the calibration data first
     pp_render.load_calibration_data(
