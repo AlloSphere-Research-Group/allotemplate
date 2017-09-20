@@ -217,25 +217,22 @@ public:
 
   void begin(Graphics& graphics) {
     g = &graphics;
-    fbo.bind();
+    g->framebuffer(fbo);
     g->shader(cubeshader);
     g->camera(view);
   }
 
   void set_eye(int i) {
-    if (!g) return;
     g->shader().uniform("omni_eyeSep", 0.0);
   }
 
   void set_face(int f) {
-    if (!g) return;
     g->shader().uniform("C", get_cube_mat(f));
     fbo.attachCubemapFace(cubemap, GL_TEXTURE_CUBE_MAP_POSITIVE_X+f);
   }
 
   void end() {
-    if (!g) return;
-    fbo.unbind();
+    g.framebuffer(fbo);
     g = nullptr;
   }
 
