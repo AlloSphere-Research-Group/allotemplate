@@ -28,6 +28,8 @@ user/
 *.TIFF
 *.bmp
 *.BMP
+*.bin
+*.binary
 
 bin/
 build/
