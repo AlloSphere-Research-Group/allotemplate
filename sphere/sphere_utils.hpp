@@ -51,6 +51,12 @@ bool is_renderer()
     return is_renderer(al_get_hostname());
 }
 
+std::string renderer_hostname(std::string const& fallback) {
+    auto const host = al_get_hostname();
+    if (is_renderer(host)) return host;
+    else return fallback;
+}
+
 bool is_in_sphere()
 {
     auto const host = al_get_hostname();
@@ -83,6 +89,11 @@ void get_fullscreen_dimension(int* width, int* height)
     }
 }
 
+std::string config_directory(std::string const& dir_if_not_renderer) {
+    if (is_renderer()) return "/home/sphere/calibration-current/";
+    else return dir_if_not_renderer;
+}
+
 std::string renderer_config_file_path(std::string const& host)
 {
     return "/home/sphere/calibration-current/" + host + ".txt";
@@ -96,12 +107,8 @@ std::string renderer_config_file_path()
 std::string config_file_path(std::string const& path_if_not_renderer)
 {
     auto const host = al_get_hostname();
-    if (is_renderer(host)) {
-        return renderer_config_file_path(host);
-    }
-    else {
-        return path_if_not_renderer;
-    }
+    if (is_renderer(host)) return renderer_config_file_path(host);
+    else return path_if_not_renderer;
 }
 
 std::vector<float> generate_equirect_sampletex(int width, int height)

@@ -232,8 +232,7 @@ public:
   }
 
   void end() {
-    g.framebuffer(fbo);
-    g = nullptr;
+    g->framebuffer(FBO::DEFAULT);
   }
 
   void pose(Pose const& v) {
