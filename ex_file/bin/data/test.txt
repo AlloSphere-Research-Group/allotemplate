@@ -1,2 +1,0 @@
-string from test file
-this is 2nd line
