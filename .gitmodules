@@ -1,3 +1,6 @@
 [submodule "allolib"]
 	path = allolib
 	url = git@github.com:AlloSphere-Research-Group/allolib.git
+[submodule "al_example"]
+	path = al_example
+	url = git@github.com:AlloSphere-Research-Group/al_example.git
