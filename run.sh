@@ -67,9 +67,9 @@ if [ -d "Gamma" ]; then
   make
   GAMMA_BUILD_RESULT=$?
   if [ ${GAMMA_BUILD_RESULT} != 0 ]; then
-    echo "Gamma failed to build"
+    echo "Gamma failed to build. not linking Gamma"
   else
-    GAMMA_INCLUDE_DIRS=${AL_TEMPLATE_PATH}/Gamma
+    GAMMA_INCLUDE_DIRS=${AL_TEMPLATE_PATH}/Gamma # set Gamma linking info if found and built
     GAMMA_LINK_LIBS=${AL_TEMPLATE_PATH}/Gamma/lib/libGamma.a
   fi
 fi
@@ -83,12 +83,12 @@ APP_NAME=${APP_FILE%.*} # remove extension (once, assuming .cpp)
 echo " "
 echo "___ building ${APP_NAME} __________"
 echo " "
-echo "    app path: ${APP_PATH}"
-echo "    app file: ${APP_FILE}"
-echo "    app name: ${APP_NAME}"
+# echo "    app path: ${APP_PATH}"
+# echo "    app file: ${APP_FILE}"
+# echo "    app name: ${APP_NAME}"
 
-echo "${GAMMA_INCLUDE_DIRS}"
-echo "${GAMMA_LINK_LIBS}"
+# echo "${GAMMA_INCLUDE_DIRS}"
+# echo "${GAMMA_LINK_LIBS}"
 
 cd ${INITIALDIR}
 cd ${APP_PATH}
