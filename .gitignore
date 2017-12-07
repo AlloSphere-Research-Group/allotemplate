@@ -1,21 +1,14 @@
-# don't ignore bin 'folder'
-!*/bin
-# but ignore things inside bin
-*/bin/*
+# don't ignore `bin` anywhere in folder tree
+!**/bin
+# but ignore things inside folder named bin
+**/bin/*
 # while not ignoring things inside bin/data
-!*/bin/data/
+!**/bin/data
 
-user/
-
-*/build/
-*/xcode/
+# anything named build
+build
 
 *.log
-
-*.sublime-project
-*.sublime-workspace
-*/.vs/
-
 *.png
 *.PNG
 *.gif
@@ -30,6 +23,3 @@ user/
 *.BMP
 *.bin
 *.binary
-
-bin/
-build/
