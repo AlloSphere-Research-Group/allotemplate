@@ -106,9 +106,12 @@ int main()
 {
 
 	cout << flat_stereo({0, 3, -20}) << endl;
-	cout << flat_stereo2({0, 3, -20}) << endl;
+	// cout << flat_stereo2({0, 3, -20}) << endl;
 	cout << flat_stereo({0, 3, -5}) << endl;
-	cout << flat_stereo2({0, 3, -5}) << endl;
+	// cout << flat_stereo2({0, 3, -5}) << endl;
+	cout << flat_stereo({0, 3, 20}) << endl;
+	cout << flat_stereo({0, 3, 5}) << endl;
+
 
 
 
