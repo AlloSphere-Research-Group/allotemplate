@@ -1,7 +1,7 @@
 #ifndef INCLUDE_AL_SPHERE_UTILS_HPP
 #define INCLUDE_AL_SPHERE_UTILS_HPP
 
-#include "al/core/gl/al_GLFW.hpp"
+#include "al/core/graphics/al_GLFW.hpp"
 #include "al/core/math/al_Constants.hpp"
 
 #include <string>
@@ -68,9 +68,11 @@ void get_fullscreen_dimension(int* width, int* height)
     // Window Size in AlloSphere
     
     // considering Mosaic'ed displays as one bing screen
-    // (glfw can't see Mosaic settings)
+    // (since glfw can't see Mosaic settings)
 
     // original code by Donghao Ren
+    // https://github.com/donghaoren
+    // donghaoren@cs.ucsb.edu
 
     int count;
     GLFWmonitor** monitors = glfwGetMonitors(&count);

@@ -2,13 +2,13 @@
 #define INLCUDE_AL_PERPROJECTION_HPP
 
 #include "al/core/math/al_Matrix4.hpp"
-#include "al/core/gl/al_Viewpoint.hpp"
-#include "al/core/gl/al_FBO.hpp"
-#include "al/core/gl/al_Shader.hpp"
-#include "al/core/gl/al_Texture.hpp"
-#include "al/core/gl/al_VAOMesh.hpp"
-#include "al/core/gl/al_Graphics.hpp"
-#include "al/core/gl/al_Shapes.hpp"
+#include "al/core/graphics/al_Viewpoint.hpp"
+#include "al/core/graphics/al_FBO.hpp"
+#include "al/core/graphics/al_Shader.hpp"
+#include "al/core/graphics/al_Texture.hpp"
+#include "al/core/graphics/al_VAOMesh.hpp"
+#include "al/core/graphics/al_Graphics.hpp"
+#include "al/core/graphics/al_Shapes.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -25,30 +25,32 @@ public:
 inline std::string perprojection_vert() { return R"(
 #version 330
 uniform mat4 MV;
-uniform mat4 PC;  // projection matrix is a combination of rotation and projection here
+uniform mat4 P;  // projection matrix is a combination of rotation and projection here
 
-// @omni_eyeSep: the eye parallax distance.
+// @eye_sep: the eye parallax distance.
 //  This will be zero for mono, and positive/negative for right/left eyes.
-uniform float omni_eyeSep;
+uniform float eye_sep;
 
-// @omni_radius: the radius of the sphere in OpenGL units.
+// @foc_len: the radius of the sphere in OpenGL units.
 //  This will be infinity for the original layout (we default to 1e10).
-uniform float omni_radius;
+uniform float foc_len;
 
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec4 color;
-layout (location = 2) in vec2 texcoord;
-layout (location = 3) in vec3 normal;
+// layout (location = 2) in vec2 texcoord;
+// layout (location = 3) in vec3 normal;
 
 out vec4 color_;
-out vec2 texcoord_;
-out vec3 normal_;
+// out vec2 texcoord_;
+// out vec3 normal_;
 
 vec4 displace(in vec4 vertex) {
   float l = length(vertex.xz);
   vec3 vn = normalize(vertex.xyz);
 
   // Precise formula.
+  float omni_eyeSep = eye_sep;
+  float omni_radius = foc_len;
   float displacement = omni_eyeSep * (omni_radius * omni_radius - sqrt(l * l * omni_radius * omni_radius + omni_eyeSep * omni_eyeSep * (omni_radius * omni_radius - l * l))) / (omni_radius * omni_radius - omni_eyeSep * omni_eyeSep);
 
   // Approximation, safe if omni_radius / omni_eyeSep is very large, which is true for the allosphere.
@@ -60,30 +62,30 @@ vec4 displace(in vec4 vertex) {
 
 void main() {
   vec4 vertex = MV * vec4(position, 1.0);
-  gl_Position = PC * displace(vertex);
+  gl_Position = P * displace(vertex);
   color_ = color;
-  texcoord_ = texcoord;
-  normal_ = normal;
+  // texcoord_ = texcoord;
+  // normal_ = normal;
 }
 )";}
 
 inline std::string perprojection_frag() { return R"(
 #version 330
-uniform sampler2D tex0;
-uniform float tex0_mix;
-uniform float light_mix;
+// uniform sampler2D tex0;
+// uniform float tex0_mix;
+// uniform float light_mix;
 
 in vec4 color_;
-in vec2 texcoord_;
-in vec3 normal_;
+// in vec2 texcoord_;
+// in vec3 normal_;
 
 out vec4 frag_color;
 
 void main() {
-  vec4 tex_color0 = texture(tex0, texcoord_);
-  vec4 light_color = vec4(normal_, 1.0); // TODO
-  vec4 final_color = mix(mix(color_, tex_color0, tex0_mix), light_color, light_mix);
-  frag_color = final_color;
+  // vec4 tex_color0 = texture(tex0, texcoord_);
+  // vec4 light_color = vec4(normal_, 1.0); // TODO
+  // vec4 final_color = mix(mix(color_, tex_color0, tex0_mix), light_color, light_mix);
+  frag_color = color_;
 }
 )";}
 
@@ -140,6 +142,7 @@ public:
 
   void load_allosphere_calibration(const char* path, const char* hostname) {
     std::ifstream config((std::string(path) + "/" + std::string(hostname) + ".txt").c_str());
+
     std::string id;
     if(config >> id) {
       bool got_next = false;
@@ -174,7 +177,7 @@ public:
     // Load warp data
     for(int i = 0; i < viewports.size(); i++) {
       ProjectionViewport& vp = viewports[i];
-      std::ifstream file((std::string(path) + "/map3D" + vp.id + ".bin"), ios::in | ios::binary);
+      std::ifstream file((std::string(path) + "/map3D" + vp.id + ".bin"), std::ios::in | std::ios::binary);
 
       if(!file) {
         std::cout << "could not open file: " << vp.filepath << std::endl;
@@ -222,22 +225,28 @@ public:
 class PerProjectionRender {
 public:
   struct ProjectionInfo {
-    shared_ptr<Texture> texture, warp_texture;
+    std::shared_ptr<Texture> texture, warp_texture;
     Mat4f pc_matrix, r_matrix;
     float tanFovDiv2;
   };
 
   WarpBlendData warpblend_;
   int res_;
-  Viewpoint view_;
+  Pose pose_;
+  Viewpoint view_ {pose_};
+  Viewport viewport_;
   std::vector<ProjectionInfo> projection_infos_;
   RBO rbo_;
   FBO fbo_;
-  ShaderProgram pp_shader_;
+  // ShaderProgram pp_shader_;
   ShaderProgram composite_shader_;
-  float radius_;
+  Lens lens_;
   Graphics* g;
   VAOMesh texquad;
+  
+  // instead of push/pop
+  Lens prev_lens_;
+  ShaderProgram* prev_shader_;
 
   Mat4f get_rotation_matrix(Vec3f axis, float angle) {
     Mat4f r;
@@ -255,9 +264,9 @@ public:
 
   void init(int res=1024, float near=0.1, float far=100, float radius = 1e10) {
     res_ = res;
-    radius_ = radius;
-    view_.fovy(90).near(near).far(far);
-    view_.viewport(0, 0, res_, res_);
+    lens_.focalLength(radius);
+    // radius_ = radius;
+    viewport_.set(0, 0, res_, res_);
 
     projection_infos_.resize(warpblend_.viewports.size());
     for(int index = 0; index < warpblend_.viewports.size(); index++) {
@@ -287,7 +296,7 @@ public:
         std::cout << "unable to use per-projection mode, viewport angle too large." << std::endl;
       }
       float fov = std::acos(dot_max) * 2.0f;
-      std::cout << fov << std::endl;
+      // std::cout << fov << std::endl;
         // ProjectionTexture& pt = tex_projections_[vp];
       Vec3f rotation_axis = Vec3f(0, 0, -1).cross(direction);
       rotation_axis = rotation_axis.normalize();
@@ -313,10 +322,10 @@ public:
     fbo_.attachTexture2D(*projection_infos_[0].texture);
     fbo_.attachRBO(rbo_);
     fbo_.unbind();
-    pp_shader_.compile(perprojection_vert(), perprojection_frag());
-    pp_shader_.begin();
-    pp_shader_.uniform("omni_radius", radius_);
-    pp_shader_.end();
+    // pp_shader_.compile(perprojection_vert(), perprojection_frag());
+    // pp_shader_.begin();
+    // pp_shader_.uniform("omni_radius", radius_);
+    // pp_shader_.end();
 
     composite_shader_.compile(perprojection_samplevert(), perprojection_samplefrag());
     composite_shader_.begin();
@@ -335,14 +344,24 @@ public:
 
   void begin(Graphics& graphics) {
     g = &graphics;
-    g->framebuffer(fbo_);
-    g->shader(pp_shader_);
-    g->camera(view_);
+    g->pushFramebuffer(fbo_);
+    g->pushViewport(viewport_);
+    g->pushViewMatrix(view_mat(pose_));
+    g->pushProjMatrix();
+    // TODO: pushLens and pushShader
+    prev_lens_ = g->lens();
+    g->lens(lens_);
+    prev_shader_ = g->shaderPtr();
+    // g->shader(pp_shader_);
   }
 
+  // must only use between begin and end
   void set_eye(int i) {
-    g->shader(pp_shader_);
-    g->shader().uniform("omni_eyeSep", 0.0);
+    if (i == 0) g->eye(Graphics::LEFT_EYE);
+    else if (i == 1) g->eye(Graphics::RIGHT_EYE);
+    else if (i == -1) g->eye(Graphics::MONO_EYE);
+
+    // g->shader().uniform("omni_eyeSep", 0.0);
   }
 
   int num_eyes() {
@@ -353,23 +372,31 @@ public:
     return projection_infos_.size();
   }
 
+  // must only use between begin and end
   void set_projection(int index) {
-    g->shader(pp_shader_);
-    g->shader().uniform("PC", projection_infos_[index].pc_matrix);
+    g->projMatrix(projection_infos_[index].pc_matrix);
     fbo_.attachTexture2D(*projection_infos_[index].texture);
   }
 
   void end() {
-    g->framebuffer(FBO::DEFAULT);
-    fbo_.end();
+    g->popFramebuffer();
+    g->popViewport();
+    g->popViewMatrix();
+    g->popProjMatrix();
+    g->lens(prev_lens_);
+    if (prev_shader_ != nullptr) {
+      g->shader(*prev_shader_);
+    }
+    // fbo_.end();
   }
-
-  void view(Viewpoint& v) {
-    view_.pose(v);
+  
+  void pose(Pose const& p) {
+    pose_ = p;
   }
 
   void composite(Graphics& g) {
-    g.camera(Viewpoint::IDENTITY);
+    g.pushCamera(Viewpoint::IDENTITY);
+    g.pushViewport();
     GLint dims[4];
     glGetIntegerv(GL_VIEWPORT, dims);
     int width = dims[2];
@@ -387,6 +414,8 @@ public:
       projection_infos_[i].warp_texture->unbind(PerProjectionRenderConstants::sampletex_binding_point);
       projection_infos_[i].texture->unbind(PerProjectionRenderConstants::textures_bidning_point);
     }
+    g.popViewport();
+    g.popCamera();
   }
 };
 }
