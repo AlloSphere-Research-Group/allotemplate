@@ -69,7 +69,7 @@ mkdir -p build
 cd build
 mkdir -p "${BUILD_TYPE}"
 cd "${BUILD_TYPE}"
-cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DAL_VERBOSE_OUTPUT=${VERBOSE_FLAG} ../..
+cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DAL_VERBOSE_OUTPUT=${VERBOSE_FLAG} ../.. > cmake_log.txt
 make
 LIB_BUILD_RESULT=$?
 if [ ${LIB_BUILD_RESULT} != 0 ]; then
@@ -87,7 +87,7 @@ if [ -d "Gamma" ]; then
   cd build
   mkdir -p "${BUILD_TYPE}"
   cd "${BUILD_TYPE}"
-  cmake ../.. -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
+  cmake ../.. -DCMAKE_BUILD_TYPE=${BUILD_TYPE} > cmake_log.txt
   make
   GAMMA_BUILD_RESULT=$?
   if [ ${GAMMA_BUILD_RESULT} != 0 ]; then
@@ -125,7 +125,7 @@ mkdir -p build
 cd build
 mkdir -p ${APP_NAME}
 cd ${APP_NAME}
-cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -Dal_path=${AL_LIB_PATH} -DAL_APP_FILE=../../${APP_FILE} -Dapp_include_dirs=${GAMMA_INCLUDE_DIRS}\; -Dapp_link_libs=${GAMMA_LINK_LIBS}\; -DAL_VERBOSE_OUTPUT=${VERBOSE_FLAG} ${AL_LIB_PATH}/cmake/single_file
+cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -Dal_path=${AL_LIB_PATH} -DAL_APP_FILE=../../${APP_FILE} -Dapp_include_dirs=${GAMMA_INCLUDE_DIRS}\; -Dapp_link_libs=${GAMMA_LINK_LIBS}\; -DAL_VERBOSE_OUTPUT=${VERBOSE_FLAG} ${AL_LIB_PATH}/cmake/single_file > cmake_log.txt
 make
 
 APP_BUILD_RESULT=$?
