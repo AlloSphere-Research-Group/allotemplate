@@ -6,6 +6,15 @@ if [ $# == 0 ]; then
   exit 1
 fi
 
+if [ $(uname -s) == "Darwin" ]; then
+  CURRENT_OS="MACOS"
+  # echo "running on macOS"
+fi
+
+if [ $(uname -s) == "Linux" ]; then
+  CURRENT_OS="LINUX"
+fi
+
 INITIALDIR=${PWD} # gives absolute path
 # echo "Script executed from: ${INITIALDIR}"
 
@@ -94,7 +103,37 @@ if [ -d "Gamma" ]; then
     echo "Gamma failed to build. not linking Gamma"
   else
     GAMMA_INCLUDE_DIRS=${AL_TEMPLATE_PATH}/Gamma # set Gamma linking info if found and built
-    GAMMA_LINK_LIBS=${AL_TEMPLATE_PATH}/Gamma/lib/libGamma.a
+    if [ BUILD_TYPE == "Release" ]; then
+      GAMMA_LINK_LIBS=${AL_TEMPLATE_PATH}/Gamma/lib/libGamma.a
+    else
+      GAMMA_LINK_LIBS=${AL_TEMPLATE_PATH}/Gamma/lib/libGamma_debug.a
+    fi
+  fi
+fi
+
+# build cuttlebone if it exists
+cd ${AL_TEMPLATE_PATH}
+if [ -d "cuttlebone" ]; then
+  echo " "
+  echo "___ cuttlebone found, building cuttlebone __________"
+  cd cuttlebone
+  mkdir -p build
+  cd build
+  mkdir -p "${BUILD_TYPE}"
+  cd "${BUILD_TYPE}"
+  cmake ../.. -DCMAKE_BUILD_TYPE=${BUILD_TYPE} > cmake_log.txt
+  make
+  CUTTLEBONE_BUILD_RESULT=$?
+  if [ ${CUTTLEBONE_BUILD_RESULT} != 0 ]; then
+    echo "cuttlebone failed to build. not linking cuttlebone"
+  else
+    CUTTLEBONE_INCLUDE_DIRS=${AL_TEMPLATE_PATH}/cuttlebone
+    if [ ${CURRENT_OS} == "MACOS" ]; then
+      CUTTLEBONE_LINK_LIBS=${AL_TEMPLATE_PATH}/cuttlebone/build/${BUILD_TYPE}/libcuttlebone.dylib
+    fi
+    if [ ${CURRENT_OS} == "LINUX" ]; then
+      CUTTLEBONE_LINK_LIBS=${AL_TEMPLATE_PATH}/cuttlebone/build/${BUILD_TYPE}/libcuttlebone.so
+    fi
   fi
 fi
 
@@ -125,7 +164,7 @@ mkdir -p build
 cd build
 mkdir -p ${APP_NAME}
 cd ${APP_NAME}
-cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -Dal_path=${AL_LIB_PATH} -DAL_APP_FILE=../../${APP_FILE} -Dapp_include_dirs=${GAMMA_INCLUDE_DIRS}\; -Dapp_link_libs=${GAMMA_LINK_LIBS}\; -DAL_VERBOSE_OUTPUT=${VERBOSE_FLAG} ${AL_LIB_PATH}/cmake/single_file > cmake_log.txt
+cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -Dal_path=${AL_LIB_PATH} -DAL_APP_FILE=../../${APP_FILE} -Dapp_include_dirs=${GAMMA_INCLUDE_DIRS}\;${CUTTLEBONE_INCLUDE_DIRS}\; -Dapp_link_libs=${GAMMA_LINK_LIBS}\;${CUTTLEBONE_LINK_LIBS}\; -DAL_VERBOSE_OUTPUT=${VERBOSE_FLAG} ${AL_LIB_PATH}/cmake/single_file > cmake_log.txt
 make
 
 APP_BUILD_RESULT=$?

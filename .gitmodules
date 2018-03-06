@@ -7,3 +7,6 @@
 [submodule "Gamma"]
 	path = Gamma
 	url = git@github.com:AlloSphere-Research-Group/Gamma.git
+[submodule "cuttlebone"]
+	path = cuttlebone
+	url = git@github.com:kybr/cuttlebone.git
