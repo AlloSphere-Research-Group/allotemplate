@@ -122,7 +122,7 @@ if [ -d "cuttlebone" ]; then
   mkdir -p "${BUILD_TYPE}"
   cd "${BUILD_TYPE}"
   cmake ../.. -DCMAKE_BUILD_TYPE=${BUILD_TYPE} > cmake_log.txt
-  make
+  make > make_log.txt
   CUTTLEBONE_BUILD_RESULT=$?
   if [ ${CUTTLEBONE_BUILD_RESULT} != 0 ]; then
     echo "cuttlebone failed to build. not linking cuttlebone"
