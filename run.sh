@@ -23,12 +23,15 @@ SCRIPT_PATH=$(dirname ${BASH_SOURCE[0]})
 
 FIRSTCHAR=${SCRIPT_PATH:0:1}
 if [ ${FIRSTCHAR} == "/" ]; then # it's asolute path
-  AL_TEMPLATE_PATH=${SCRIPT_PATH}
-  AL_LIB_PATH=${AL_TEMPLATE_PATH}/allolib
+  AL_LIB_PATH=${SCRIPT_PATH}/allolib
 else # SCRIPT_PATH was relative
-  AL_TEMPLATE_PATH=${INITIALDIR}/${SCRIPT_PATH} # make it absolute
-  AL_LIB_PATH=${AL_TEMPLATE_PATH}/allolib
+  AL_LIB_PATH=${INITIALDIR}/${SCRIPT_PATH}/allolib
 fi
+
+# Get the number of processors on OS X; Linux; or MSYS2, or take a best guess.
+NPROC=$(grep --count ^processor /proc/cpuinfo 2>/dev/null || sysctl -n hw.ncpu || nproc || echo 2)
+# Save one core for the gui.
+PROC_FLAG=$((NPROC - 1))
 
 # resolve flags
 BUILD_TYPE=Release # release build by default
@@ -40,7 +43,7 @@ while getopts "dncv" opt; do
   case "${opt}" in
   d)
     BUILD_TYPE=Debug
-    POSTFIX=_debug # if release, there's no postfix
+    POSTFIX=d # if release, there's no postfix
     ;;
   n)
     EXIT_AFTER_BUILD=1
@@ -61,90 +64,39 @@ if [ ${IS_VERBOSE} == 1 ]; then
   echo "BUILD TYPE: ${BUILD_TYPE}"
 fi
 
-# build allolib
-echo " "
-echo "___ building allolib __________"
-
-cd ${AL_LIB_PATH}
-git submodule init
-git submodule update
-if [ ${DO_CLEAN} == 1 ]; then
-  if [ ${IS_VERBOSE} == 1 ]; then
-    echo "cleaning build"
-  fi
-  rm -r build
-fi
-mkdir -p build
-cd build
-mkdir -p "${BUILD_TYPE}"
-cd "${BUILD_TYPE}"
-cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DAL_VERBOSE_OUTPUT=${VERBOSE_FLAG} ../.. > cmake_log.txt
-make
-LIB_BUILD_RESULT=$?
-if [ ${LIB_BUILD_RESULT} != 0 ]; then
-  echo "allolib failed to build"
-  exit 1 # if lib failed to build, exit
-fi
-
-# build gamma if it exists
-cd ${AL_TEMPLATE_PATH}
-if [ -d "Gamma" ]; then
-  echo " "
-  echo "___ Gamma found, building Gamma __________"
-  cd Gamma
-  mkdir -p build
-  cd build
-  mkdir -p "${BUILD_TYPE}"
-  cd "${BUILD_TYPE}"
-  cmake ../.. -DCMAKE_BUILD_TYPE=${BUILD_TYPE} > cmake_log.txt
-  make
-  GAMMA_BUILD_RESULT=$?
-  if [ ${GAMMA_BUILD_RESULT} != 0 ]; then
-    echo "Gamma failed to build. not linking Gamma"
-  else
-    GAMMA_INCLUDE_DIRS=${AL_TEMPLATE_PATH}/Gamma # set Gamma linking info if found and built
-    if [ BUILD_TYPE == "Release" ]; then
-      GAMMA_LINK_LIBS=${AL_TEMPLATE_PATH}/Gamma/lib/libGamma.a
-    else
-      GAMMA_LINK_LIBS=${AL_TEMPLATE_PATH}/Gamma/lib/libGamma_debug.a
-    fi
-  fi
-fi
-
 # build cuttlebone if it exists
-cd ${AL_TEMPLATE_PATH}
-if [ -d "cuttlebone" ]; then
-  echo " "
-  echo "___ cuttlebone found, building cuttlebone __________"
-  cd cuttlebone
-  mkdir -p build
-  cd build
-  mkdir -p "${BUILD_TYPE}"
-  cd "${BUILD_TYPE}"
-  cmake ../.. -DCMAKE_BUILD_TYPE=${BUILD_TYPE} > cmake_log.txt
-  make > make_log.txt
-  CUTTLEBONE_BUILD_RESULT=$?
-  if [ ${CUTTLEBONE_BUILD_RESULT} != 0 ]; then
-    echo "cuttlebone failed to build. not linking cuttlebone"
-  else
-    CUTTLEBONE_INCLUDE_DIRS=${AL_TEMPLATE_PATH}/cuttlebone
-    if [ ${CURRENT_OS} == "MACOS" ]; then
-      CUTTLEBONE_LINK_LIBS=${AL_TEMPLATE_PATH}/cuttlebone/build/${BUILD_TYPE}/libcuttlebone.dylib
-    fi
-    if [ ${CURRENT_OS} == "LINUX" ]; then
-      CUTTLEBONE_LINK_LIBS=${AL_TEMPLATE_PATH}/cuttlebone/build/${BUILD_TYPE}/libcuttlebone.so
-    fi
-  fi
-fi
+# cd ${AL_TEMPLATE_PATH}
+# if [ -d "cuttlebone" ]; then
+#   echo " "
+#   echo "___ cuttlebone found, building cuttlebone __________"
+#   cd cuttlebone
+#   mkdir -p build
+#   cd build
+#   mkdir -p "${BUILD_TYPE}"
+#   cd "${BUILD_TYPE}"
+#   cmake ../.. -DCMAKE_BUILD_TYPE=${BUILD_TYPE} > cmake_log.txt
+#   make > make_log.txt
+#   CUTTLEBONE_BUILD_RESULT=$?
+#   if [ ${CUTTLEBONE_BUILD_RESULT} != 0 ]; then
+#     echo "cuttlebone failed to build. not linking cuttlebone"
+#   else
+#     CUTTLEBONE_INCLUDE_DIRS=${AL_TEMPLATE_PATH}/cuttlebone
+#     if [ ${CURRENT_OS} == "MACOS" ]; then
+#       CUTTLEBONE_LINK_LIBS=${AL_TEMPLATE_PATH}/cuttlebone/build/${BUILD_TYPE}/libcuttlebone.dylib
+#     fi
+#     if [ ${CURRENT_OS} == "LINUX" ]; then
+#       CUTTLEBONE_LINK_LIBS=${AL_TEMPLATE_PATH}/cuttlebone/build/${BUILD_TYPE}/libcuttlebone.so
+#     fi
+#   fi
+# fi
 
-# build app
+# build app (and allolib as subdir)
 
 APP_FILE_INPUT="$1" # first argument (assumming we consumed all the options above)
 APP_PATH=$(dirname ${APP_FILE_INPUT})
 APP_FILE=$(basename ${APP_FILE_INPUT})
-APP_NAME=${APP_FILE%.*} # remove extension (once, assuming .cpp)
-echo " "
-echo "___ building ${APP_NAME} __________"
+APP_NAME=${APP_FILE%.*} # remove extension once, assuming .cpp
+
 # echo "    app path: ${APP_PATH}"
 # echo "    app file: ${APP_FILE}"
 # echo "    app name: ${APP_NAME}"
@@ -152,23 +104,28 @@ echo "___ building ${APP_NAME} __________"
 # echo "${GAMMA_INCLUDE_DIRS}"
 # echo "${GAMMA_LINK_LIBS}"
 
-cd ${INITIALDIR}
-cd ${APP_PATH}
-if [ ${DO_CLEAN} == 1 ]; then
-  if [ ${IS_VERBOSE} == 1 ]; then
-    echo "cleaning build"
+(
+  cd ${APP_PATH}
+  if [ ${DO_CLEAN} == 1 ]; then
+    if [ ${IS_VERBOSE} == 1 ]; then
+      echo "cleaning build"
+    fi
+    rm -r build
   fi
-  rm -r build
-fi
-mkdir -p build
-cd build
-mkdir -p ${APP_NAME}
-cd ${APP_NAME}
-cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -Dal_path=${AL_LIB_PATH} -DAL_APP_FILE=../../${APP_FILE} -Dapp_include_dirs=${GAMMA_INCLUDE_DIRS}\;${CUTTLEBONE_INCLUDE_DIRS}\; -Dapp_link_libs=${GAMMA_LINK_LIBS}\;${CUTTLEBONE_LINK_LIBS}\; -DAL_VERBOSE_OUTPUT=${VERBOSE_FLAG} ${AL_LIB_PATH}/cmake/single_file > cmake_log.txt
-make
+  mkdir -p build
+  cd build
+  mkdir -p ${APP_NAME}
+  cd ${APP_NAME}
+  mkdir -p ${BUILD_TYPE}
+  cd ${BUILD_TYPE}
+
+  cmake -Wno-deprecated -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DAL_APP_FILE=../../../${APP_FILE} -DAL_VERBOSE_OUTPUT=${VERBOSE_FLAG} ${AL_LIB_PATH}/cmake/single_file > cmake_log.txt
+  make -j$PROC_FLAG
+)
 
 APP_BUILD_RESULT=$?
 if [ ${APP_BUILD_RESULT} != 0 ]; then
+  echo "app ${APP_NAME} failed to build"
   exit 1 # if app failed to build, exit
 fi
 
@@ -181,6 +138,15 @@ fi
 # (app's cmake is set to put binary in 'bin')
 cd ${INITIALDIR}
 cd ${APP_PATH}/bin
-echo " "
-echo "___ running ${APP_NAME} __________"
-./"${APP_NAME}${POSTFIX}"
+
+if [ "${CURRENT_OS}" = "MACOS" ]; then
+  DEBUGGER="lldb -o run -ex "
+else
+  DEBUGGER="gdb -ex run "
+fi
+
+if [ ${BUILD_TYPE} == "Release" ]; then
+  ./"${APP_NAME}${POSTFIX}"
+else
+  ${DEBUGGER} ./"${APP_NAME}${POSTFIX}"
+fi
