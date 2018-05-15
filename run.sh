@@ -64,32 +64,6 @@ if [ ${IS_VERBOSE} == 1 ]; then
   echo "BUILD TYPE: ${BUILD_TYPE}"
 fi
 
-# build cuttlebone if it exists
-# cd ${AL_TEMPLATE_PATH}
-# if [ -d "cuttlebone" ]; then
-#   echo " "
-#   echo "___ cuttlebone found, building cuttlebone __________"
-#   cd cuttlebone
-#   mkdir -p build
-#   cd build
-#   mkdir -p "${BUILD_TYPE}"
-#   cd "${BUILD_TYPE}"
-#   cmake ../.. -DCMAKE_BUILD_TYPE=${BUILD_TYPE} > cmake_log.txt
-#   make > make_log.txt
-#   CUTTLEBONE_BUILD_RESULT=$?
-#   if [ ${CUTTLEBONE_BUILD_RESULT} != 0 ]; then
-#     echo "cuttlebone failed to build. not linking cuttlebone"
-#   else
-#     CUTTLEBONE_INCLUDE_DIRS=${AL_TEMPLATE_PATH}/cuttlebone
-#     if [ ${CURRENT_OS} == "MACOS" ]; then
-#       CUTTLEBONE_LINK_LIBS=${AL_TEMPLATE_PATH}/cuttlebone/build/${BUILD_TYPE}/libcuttlebone.dylib
-#     fi
-#     if [ ${CURRENT_OS} == "LINUX" ]; then
-#       CUTTLEBONE_LINK_LIBS=${AL_TEMPLATE_PATH}/cuttlebone/build/${BUILD_TYPE}/libcuttlebone.so
-#     fi
-#   fi
-# fi
-
 # build app (and allolib as subdir)
 
 APP_FILE_INPUT="$1" # first argument (assumming we consumed all the options above)
@@ -101,13 +75,10 @@ APP_NAME=${APP_FILE%.*} # remove extension once, assuming .cpp
 # echo "    app file: ${APP_FILE}"
 # echo "    app name: ${APP_NAME}"
 
-# echo "${GAMMA_INCLUDE_DIRS}"
-# echo "${GAMMA_LINK_LIBS}"
-
 (
   cd ${APP_PATH}
-  if [ ${DO_CLEAN} == 1 ]; then
-    if [ ${IS_VERBOSE} == 1 ]; then
+  if [ "${DO_CLEAN}" == 1 ]; then
+    if [ "${IS_VERBOSE}" == 1 ]; then
       echo "cleaning build"
     fi
     rm -r build
@@ -139,13 +110,13 @@ fi
 cd ${INITIALDIR}
 cd ${APP_PATH}/bin
 
-if [ "${CURRENT_OS}" = "MACOS" ]; then
+if [ "${CURRENT_OS}" == "MACOS" ]; then
   DEBUGGER="lldb -o run -ex "
 else
   DEBUGGER="gdb -ex run "
 fi
 
-if [ ${BUILD_TYPE} == "Release" ]; then
+if [ "${BUILD_TYPE}" == "Release" ]; then
   ./"${APP_NAME}${POSTFIX}"
 else
   ${DEBUGGER} ./"${APP_NAME}${POSTFIX}"
