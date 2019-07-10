@@ -12,7 +12,9 @@ University of California, Santa Barbara
 ## Dependencies
 
 terminal to run bash
+
 git
+
 cmake version 3.0 or higher
 
 ## How to setup
@@ -41,21 +43,21 @@ After setting up the git repo, add allolib as a submodule from the root, and per
 ## How to compile / run
 src folder contains the initial test code you can replace.
 
-edit CMakeLists.txt and run.sh to match your code.
+Edit CMakeLists.txt and run.sh to match your code.
 
 On a bash shell:
 
     ./configure.sh
 
-this will execute cmake on the project
+This will execute cmake on the project
 
     ./run.sh
 
-this will compile the project, and run the binary if compilation is successful.
+This will compile the project, and run the binary if compilation is successful.
 
-
-if you need to delete the distribution,
+## How to perform a distclean
+If you need to delete the distribution,
 
     ./distclean.sh
 
-should recursively clean all the build directories of the project
+should recursively clean all the build directories of the project including those of allolib and its submodules.
