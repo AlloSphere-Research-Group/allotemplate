@@ -1,7 +1,7 @@
 #!/bin/bash
 (
-    cd build/release
-    make -j 7
+#    cd build/release
+    cmake --build build/release
 )
 
 result=$?
