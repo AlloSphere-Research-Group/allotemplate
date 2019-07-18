@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
-# name of app. replace 'main' with app name
-set(APP_NAME main)
+# name of application. replace 'app' with desired app name
+set(APP_NAME app)
 
 project(${APP_NAME})
 
