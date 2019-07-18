@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.0)
 
-# name of app. replace 'test' with app name
-set(APP_NAME test)
+# name of app. replace 'main' with app name
+set(APP_NAME main)
 
 project(${APP_NAME})
 
 # path to main source file
-add_executable(${APP_NAME} src/test.cpp)
+add_executable(${APP_NAME} src/main.cpp)
 
 # add allolib as a subdirectory to the project
 add_subdirectory(allolib)
