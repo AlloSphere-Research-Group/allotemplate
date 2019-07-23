@@ -1,10 +1,11 @@
 #!/bin/bash
 (
-#    cd build/release
-    cmake --build build/release
+  # utilizing cmake's parallel build options
+  # recommended: -j <number of processor cores + 1>
+  cmake --build build/release -j 5
 )
 
 result=$?
 if [ ${result} == 0 ]; then
-    ./bin/app
+  ./bin/app
 fi
