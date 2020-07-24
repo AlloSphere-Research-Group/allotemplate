@@ -22,20 +22,12 @@ On a bash shell:
 
     git clone https://github.com/AlloSphere-Research-Group/allotemplate.git <project folder name>
     cd <project folder name>
-
     ./init.sh
 
-Now the folder is no longer a git repository.
-
+### Optional: Pushing to your own git repository
 You can convert the folder into a git repository of your choice with the following commands. (Example is using a github repository: replace username and repository name)
 
-    git init
     git remote add origin git@github.com:username/new_repo
-
-After setting up the git repo, add allolib as a submodule from the root, and perform a recursive update/init
-
-    git submodule add https://github.com/AlloSphere-Research-Group/allolib.git
-    git submodule update --recursive --init
 
 After the initial commit, set the upstream with the following command.
 

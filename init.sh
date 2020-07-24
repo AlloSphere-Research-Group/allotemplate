@@ -1,9 +1,10 @@
 #!/bin/bash
 
-#  check for remote get-url origin
-if [ `git remote get-url origin` == "https://github.com/AlloSphere-Research-Group/allotemplate.git" ]; then
-  rm -rf .git
-
-  fi
-
+# remove existing git data
+rm -rf .git
 rm init.sh
+
+git init
+# add allolib as a submodule
+git submodule add https://github.com/AlloSphere-Research-Group/allolib.git
+git submodule update --recursive --init
