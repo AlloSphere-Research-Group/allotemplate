@@ -27,18 +27,19 @@ On a bash shell:
 
 Now the folder is no longer a git repository.
 
-Make the project folder into the git repository of your choice.
-
-Example: Converting the folder into a new github repository (replace username and repository name)
+You can convert the folder into a git repository of your choice with the following commands. (Example is using a github repository: replace username and repository name)
 
     git init
     git remote add origin git@github.com:username/new_repo
-    git push -u origin master
 
 After setting up the git repo, add allolib as a submodule from the root, and perform a recursive update/init
 
     git submodule add https://github.com/AlloSphere-Research-Group/allolib.git
     git submodule update --recursive --init
+
+After the initial commit, set the upstream with the following command.
+
+    git push -u origin master
 
 ## How to compile / run
 src folder contains the initial test code you can replace.
