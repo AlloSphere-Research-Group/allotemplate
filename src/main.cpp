@@ -32,7 +32,6 @@ struct MyApp : App {
     g.rotate(phase * 360, 0, 1, 0);
     g.color(1);
     g.draw(mesh);
-    g.popMatrix();
   }
 };
 
