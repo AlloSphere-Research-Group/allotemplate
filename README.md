@@ -14,10 +14,8 @@ University of California, Santa Barbara
 The [alloinit](https://github.com/allolib-s22/notes-ethwu/blob/main/alloinit) project provides a simple way to instantiate an allotemplate project. You can easily 
 
     $ curl https://allolib-s22.github.io/notes-ethwu/alloinit \
-        > ~/.local/bin/alloinit       # Download `alloinit` to `~/.local/bin`.
-    $ chmod +x ~/.local/bin/alloinit  # Make `alloinit` executable.
-    $ alloinit -h                     # `alloinit` is now available!
-    $ alloinit project
+        > ~/.local/bin/alloinit; chmod +x ~/.local/bin/alloinit
+    $ alloinit -N project
     $ cd project  # project has been created and is ready.
 
 # Manual installation
