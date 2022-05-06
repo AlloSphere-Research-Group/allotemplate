@@ -8,24 +8,23 @@ AlloSphere Research Group
 University of California, Santa Barbara
 
 # Installation
-
-# Using alloinit
-
-The [alloinit](https://github.com/allolib-s22/notes-ethwu/blob/main/alloinit) project provides a simple way to instantiate an allotemplate project. You can easily 
-
-    $ curl https://allolib-s22.github.io/notes-ethwu/alloinit \
-        > ~/.local/bin/alloinit; chmod +x ~/.local/bin/alloinit
-    $ alloinit -N project
-    $ cd project  # project has been created and is ready.
-
-# Manual installation
-
 Allotemplate currently requires:
  * bash shell
  * git
  * cmake version 3.0 or higher
 
-## Creating a new project based on allotemplate
+## Using `alloinit`
+The [`alloinit`](utils/alloinit.md) one-step project initializer can be used to
+initialize a new alloinit project as follows:
+
+```sh
+curl -L https://github.com/Allosphere-Research-Group/allotemplate/raw/master/utils/alloinit \
+    | bash -s proj  # Download `alloinit` and initialize an `allotemplate` project in `proj/`.
+cd proj             # A copy of `alloinit` is now in `proj/utils`.
+./run.sh            # Run your new project!
+```
+
+## Manually creating a new project based on allotemplate
 On a bash shell:
 
     git clone https://github.com/AlloSphere-Research-Group/allotemplate.git <project folder name>
