@@ -8,6 +8,8 @@
 # anything named build
 build
 
+*.tmp
+
 *.log
 *.png
 *.PNG
@@ -24,4 +26,8 @@ build
 *.bin
 *.binary
 
+# tracks when CMake needs to be reconfigured
+.sources
+
 apps/
+

@@ -10,7 +10,7 @@ To start and run a new [`allotemplate`][allotemplate] project:
 curl -L https://github.com/Allosphere-Research-Group/allotemplate/raw/master/utils/alloinit
     | bash -s proj  # Download `alloinit` and initialize an `allotemplate` project in `proj/`.
 cd proj             # A copy of `alloinit` is now in `proj/utils`.
-./run.sh            # Run your new project!
+make run            # Run your new project!
 ```
 
 To update [Allolib][allolib] and [its extensions][al_ext]:
@@ -29,7 +29,7 @@ generate a fully configured project ready to run:
 ```sh
 $ alloinit proj   # Set up `allotemplate` project in `proj/`.
 $ cd proj         # Change directories into `proj/`.
-$ ./run.sh        # Run the new project!
+$ make run        # Run the new project!
 ```
 
 Moreover, `alloinit` can share Allolib and its extensions between projects,
@@ -42,7 +42,7 @@ $ # On Computer A:
 $ alloinit -S example-project   # Set up a shared project.
 $ cd example-project
 $ git add . && git commit -m 'Example commit' && git push
-$ ./run.sh                      # Ready to run on Computer A!
+$ make run                      # Ready to run on Computer A!
 ```
 
 ```sh
@@ -51,8 +51,8 @@ $ git clone git@github.com:username/example-project.git
 $ cd example
 $ alloinit -S -r .              # Link to existing dependencies on Computer B,
                                 # or download them if necessary.
-$ ./run.sh                      # Ready to run on Computer B!
-```
+$ make run                      # Ready to run on Computer B!
+``n`
 
 Shared-mode projects are faster to start and clone when using `alloinit`, and
 take up less space than normal projects. However, all shared-mode projects on
@@ -112,9 +112,9 @@ above).
 
 ```sh
 curl -L https://github.com/Allosphere-Research-Group/allotemplate/raw/master/utils/alloinit \
-    > ~/.local/bin/alloinit     # Download `alloinit` to `~/.local/bin/`.
-chmod +x ~/.local/bin/alloinit  # Mark `alloinit` as executable.
-alloinit -h                     # Run `alloinit`!
+    --output ~/.local/bin/alloinit  # Download `alloinit` to `~/.local/bin/`.
+chmod +x ~/.local/bin/alloinit      # Mark `alloinit` as executable.
+alloinit -h                         # Run `alloinit`!
 ```
 
 ## Usage ##
@@ -127,6 +127,13 @@ Start an [`allotemplate`][allotemplate] project in the directory `proj/`:
 alloinit proj
 ```
 
+Install Allolib and its extensions as submodules (only needed after cloning
+allotemplate manually):
+
+```sh
+alloinit -r proj
+```
+
 Update Allolib and its extensions to the latest versions:
 
 ```sh
@@ -136,7 +143,10 @@ alloinit -u proj
 ### For shared-mode projects ###
 
 > Shared-mode projects offer faster setup times and less space usage at the
-> expense of control over the specific version of Allolib!
+> expense of control over the specific version of Allolib.
+
+> Shared-mode projects are not compatible with the `*-deps` recipes in the
+> project `Makefile`.
 
 Start a shared-mode [`allotemplate`][allotemplate] project in the directory `proj/`:
 

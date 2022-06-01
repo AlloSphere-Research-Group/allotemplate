@@ -34,7 +34,7 @@ fi
 # Name of the script.
 name="$(basename $0)"
 # Version.
-version='0.2.0'
+version='0.3.0'
 
 # Usage information.
 function show_usage() {
@@ -51,6 +51,7 @@ One-step Allolib project initializer.
 
 ${y}Usage$n:
     $g$name <proj>$n                   Start a project in <proj>.
+    $g$name -r <proj>$n                Add Allolib to <proj>.
     $g$name -u <proj>$n                Update Allolib in <proj>.
 
     $g$name -S [-l <libs>] <proj>$n    Start a project in <proj> using
@@ -65,6 +66,7 @@ ${y}Options$n:
                 $g\$XDG_DATA_HOME/alloinit/$n. The value of <libs> controls
                 the behavior of $name.
                 [Default: $g<proj>$n or $g$data_home$n]
+    $g-r$n          Install Allolib and its extensions as submodules.
     $g-u$n          Update Allolib and its extensions.
     $g-h$n          Show this help text.
     $g-V$n          Show the version.
@@ -82,7 +84,7 @@ ${y}Shared Mode Options$n:
 
 ${y}Full Documentation$n:
 EOF
-    echo "    $b${u}https://github.com/Allosphere-Research-Group/allotemplate/blob/master/utils/alloinit.md$n"
+    echo "    $b${u}https://github.com/AlloSphere-Research-Group/allotemplate/blob/master/utils/alloinit.md$n"
 }
 
 if [[ $# -lt 1 ]] ; then
@@ -202,7 +204,7 @@ function onexit() {
     [[ $subcommand == init ]] && rm -f "$dest/$tmpfile"
 }
 
-trap onexit EXIT
+trap onexit INT TERM
 
 
 # Install allolib dependencies to $lib.
@@ -212,7 +214,7 @@ function install_dependencies() {
         if [[ ! -d "$libs/$dep" ]] ; then
             touch "$libs/.$dep$tmpfile" || exit $?
             info "Retrieving dependency \`$dep\`:"
-            git clone "git@github.com:Allosphere-Research-Group/$dep.git" "$libs/$dep" \
+            git clone "git@github.com:AlloSphere-Research-Group/$dep.git" "$libs/$dep" \
                 --recurse-submodules \
                 --depth 1 \
                 --progress 2>&1 || exit $?
@@ -247,8 +249,9 @@ function add_dependencies_as_submodules() (
     cd "$1"
     info "Adding dependencies as submodules in \`$1\`."
     for dep in "${deps[@]}" ; do
-        git submodule add "git@github.com:Allosphere-Research-Group/$dep.git" \
+        git submodule add "git@github.com:AlloSphere-Research-Group/$dep.git" \
             2>&1 || exit $?
+        git config -f .gitmodules "submodule.$dep.shallow" true 2>&1 || exit $?
     done
     git submodule update --init --recursive --depth 1 2>&1 || exit $?
 )
@@ -256,11 +259,18 @@ function add_dependencies_as_submodules() (
 # Execute subcommand:
 case $subcommand in
 relink)
-    info "Relinking dependencies in project \`$dest\`."
-    # Install and link dependencies again, but do not write to `.gitignore`.
-    install_dependencies || exit $?
-    link_dependencies || exit $?
-    success "Successfully relinked dependencies in \`$dest\`!"
+    if [[ -n $shared ]] ; then
+        info "Relinking dependencies in project \`$dest\`."
+        # Install and link dependencies again, but do not write to `.gitignore`.
+        install_dependencies || exit $?
+        link_dependencies || exit $?
+        success "Successfully relinked dependencies in \`$dest\`!"
+    else
+        info "Installing dependencies as submodules in \`$dest\`."
+        # Add dependencies as submodules to the project.
+        add_dependencies_as_submodules "$dest" || exit $?
+        success "Added dependencies as submodules to \`$dest\`!"
+    fi
     ;;
 update)
     # Update existing libraries.
@@ -309,7 +319,7 @@ init)
         # Initialize an empty repository.
         git init
         # Pull changes from `allotemplate` as its own remote.
-        git remote add allotemplate git@github.com:Allosphere-Research-Group/allotemplate.git \
+        git remote add allotemplate git@github.com:AlloSphere-Research-Group/allotemplate.git \
             || exit $?
         git pull allotemplate master || exit $?
     ) 2>&1 || exit $?
@@ -324,9 +334,6 @@ init)
 
     info 'Configuring allolib project.'
     (cd "$dest" && ./configure.sh ) 2>&1 || exit $?
-
-    info 'Removing `init.sh`. (No longer needed.)'
-    rm "$dest/"init.sh || exit $?
 
     success "Successfully initialized Allolib project \`$dest\`!"
     ;;

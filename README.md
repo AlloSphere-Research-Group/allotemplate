@@ -1,55 +1,90 @@
 # allotemplate
-Template for creating applications using allolib. This template is suitable for large projects wil multiple files and dependencies where you need more control. If you are prototyping single files or want to explore the allolib examples, use the [allolib_playground repo](https://github.com/AlloSphere-Research-Group/allolib_playground).
+Template for creating applications using Allolib. This template is suitable for large projects wil multiple files and dependencies where you need more control. If you are prototyping single files or want to explore the allolib examples, use the [allolib_playground repo](https://github.com/AlloSphere-Research-Group/allolib_playground).
 
-Developed by:
-
-AlloSphere Research Group
-
-University of California, Santa Barbara
+> Developed by:
+>
+> AlloSphere Research Group
+>
+> University of California, Santa Barbara
 
 # Installation
 Allotemplate currently requires:
- * bash shell
+ * bash
  * git
  * cmake version 3.0 or higher
 
-## Using `alloinit`
-The [`alloinit`](utils/alloinit.md) one-step project initializer can be used to
-initialize a new alloinit project as follows:
-
 ```sh
-curl -L https://github.com/Allosphere-Research-Group/allotemplate/raw/master/utils/alloinit \
-    | bash -s proj  # Download `alloinit` and initialize an `allotemplate` project in `proj/`.
-cd proj             # A copy of `alloinit` is now in `proj/utils`.
-./run.sh            # Run your new project!
+git clone git@github.com:AlloSphere-Research-Group/allotemplate.git myproject
+cd myproject
+make run
 ```
 
-## Manually creating a new project based on allotemplate
-On a bash shell:
+## `alloinit`
+Submodule management is handled by the [`alloinit`](utils/alloinit.md) one-step project initializer. You can use it directly to initialize a project:
 
-    git clone https://github.com/AlloSphere-Research-Group/allotemplate.git <project folder name>
-    cd <project folder name>
-    ./init.sh
+```sh
+# Install `alloinit` to a directory on PATH:
+curl -L https://github.com/Allosphere-Research-Group/allotemplate/raw/master/utils/alloinit \
+    --output ~/.local/bin/alloinit
+export PATH="$HOME/.local/bin:$PATH"
+```
 
-This will prepare the project as a fresh git repository and will add allolib and al_ext as submodules.
+```sh
+# After installing `alloinit`:
+alloinit myproject 
+cd myproject
+make run
+```
 
-## How to compile / run
-The src/ folder contains the initial main.cpp starter code.
+`alloinit` offers an alternate project setup mode that shares a single copy of Allolib and its extensions between all projects on a computer that are configured this way. See [its documentation](utils/alloinit.md) for details.
 
-On a bash shell you can run:
+## How to compile and run
+The `src/` directory contains source files (`*.cpp`), while the `include/` directory contains header files (`*.hpp`). An example project is included.
 
-    ./configure.sh
-    ./run.sh
+To run the project:
 
-This will configure and compile the project, and run the binary if compilation is successful.
+```sh
+make run
+```
 
-Alternatively, you can open the CMakeLists.txt proeject in an IDE like VS Code, Visual Studio or Qt Creator and have the IDE manage the configuration and execution of cmake.
+To compile the project without running:
 
-You can also generate other IDE projects through cmake.
+```sh
+make build
+```
 
-## How to perform a distclean
-If you need to delete the build,
+To configure CMake without compiling:
 
-    ./distclean.sh
+```sh
+make configure
+```
 
-should recursively clean all the build directories of the project including those of allolib and its submodules.
+The project is organized into an application half (for executable-specific code) and a library half (for reusable library code). If you would like to rename the two sections (highly recommended):
+
+* Application
+  * Replace all instances of `application_name` in `src/app/` with your new application name.
+  * Replace the contents of `src/app/name.txt` with your new application name.
+* Library
+  * Replace all instances of `library_name` in `include/` with your new library name.
+  * Rename `include/library_name` to `include/<your new application name>`.
+  * Replace the contents of `src/lib/name.txt` with your new library name.
+
+When using the `Makefile` at the project root, CMake will be able to automatically find new or removed files and reconfigure when necessary, so updating `CMakeLists.txt` with manually or with an IDE is not necessary.
+
+## How to clean the repository
+If you need to clean up build artifacts, run:
+
+```sh
+make clean
+```
+
+If you need to completely remove all generated files (including `allolib` and `al_ext`), run:
+
+```sh
+make distclean
+```
+
+Then, run `make install-deps` to reinstall Allolib and its extensions. The `*-deps` recipes are not compatible with `alloinit`'s shared mode.
+
+## Make recipes
+Run `make` or `make help` if you would like to see a summary of available recipes.
