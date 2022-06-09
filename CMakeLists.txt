@@ -49,17 +49,20 @@ target_link_libraries(${LIB_NAME} PUBLIC al)
 # replace ${PATH_TO_LIB_FILE} before linking other libraries
 # target_link_libraries(${APP_NAME} PRIVATE ${PATH_TO_LIB_FILE})
 
-# Compile using C++ 2014.
+# Compile using C++ 2014. Files are generated in `dist/`.
 set_target_properties(${LIB_NAME} PROPERTIES
   CXX_STANDARD 14
   CXX_STANDARD_REQUIRED ON
+  ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/dist
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/dist
+  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/dist
 )
 
-# Compile using C++ 2014. Binaries are generated in `bin/`.
+# Compile using C++ 2014. Files are generated in `dist/`.
 set_target_properties(${APP_NAME} PROPERTIES
     CXX_STANDARD 14
     CXX_STANDARD_REQUIRED ON
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/bin
-    RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_LIST_DIR}/bin
-    RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_LIST_DIR}/bin
+    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/dist
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/dist
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/dist
 )

@@ -14,10 +14,10 @@ release := $(build)/release
 # Directory containing debug build files.
 debug := $(build)/debug
 
-# Directory containing output binaries.
-binaries := bin
+# Directory containing output libraries and binaries.
+dist := dist
 # The filepath of the application.
-app := $(binaries)/$(shell cat "$(sources)/app/name.txt")
+app := $(dist)/$(shell cat "$(sources)/app/name.txt")
 
 # Path to the `alloinit` project initializer.
 alloinit := utils/alloinit
@@ -65,9 +65,8 @@ build: build-release		# Alias for `build-release`.
 # project. If so, reconfigure CMake.
 .PHONY: configure
 configure: install-deps .sources	# Ensure that CMake has been configured.
-	if ! [ -d '$(release)' -a -d '$(debug)' ] ; then \
-		mkdir -p '$(release)' '$(debug)' ; fi
-	if ! diff .sources.tmp .sources ; then \
+	if ! diff .sources.tmp .sources || \
+		! [ -d '$(release)' -a -d '$(debug)' ] ; then \
 		mkdir -p '$(release)' '$(debug)' ; \
 		cmake -B'$(release)' -DCMAKE_BUILD_TYPE=Release $(cmake_conf_flags) ; \
 		cmake -B'$(debug)' -DCMAKE_BUILD_TYPE=Debug $(cmake_conf_flags) ; fi
@@ -118,7 +117,7 @@ reset-deps: distclean install-deps	# Reset Allolib and its extensions.
 # automatically.
 .PHONY: clean
 clean:		# Clean up build artifacts.		<---
-	rm -rf '$(build)' '$(binaries)' *.alloinit.tmp .sources.tmp
+	rm -rf '$(build)' '$(dist)' *.alloinit.tmp .sources.tmp
 
 # Removes all files that are automatically generated, including the contents of
 # the Allolib and Allolib extensions submodules.
