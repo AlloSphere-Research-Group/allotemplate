@@ -1,5 +1,6 @@
 # allotemplate
-Template for creating applications using allolib. This template is suitable for large projects wil multiple files and dependencies where you need more control. If you are prototyping single files or want to explore the allolib examples, use the [allolib_playground repo](https://github.com/AlloSphere-Research-Group/allolib_playground).
+Template repository for applications using allolib.
+This template is suitable for large projects wil multiple files and dependencies where you need more control. If you are prototyping single files or want to explore the allolib examples, use the [allolib_playground repo](https://github.com/AlloSphere-Research-Group/allolib_playground).
 
 Developed by:
 
@@ -53,3 +54,6 @@ If you need to delete the build,
     ./distclean.sh
 
 should recursively clean all the build directories of the project including those of allolib and its submodules.
+
+# remove existing git data
+rm -rf .git

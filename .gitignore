@@ -1,13 +1,8 @@
-# don't ignore `bin` anywhere in folder tree
-!**/bin
-# but ignore things inside folder named bin
-**/bin/*
-# while not ignoring things inside bin/data
-!**/bin/data
-
-# anything named build
+# anything named bin or build
+bin
 build
 
+# ignore potentially big files
 *.log
 *.png
 *.PNG
@@ -23,5 +18,3 @@ build
 *.BMP
 *.bin
 *.binary
-
-apps/

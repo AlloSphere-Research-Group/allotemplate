@@ -1,12 +1,11 @@
 #!/bin/bash
 
-# remove existing git data
 rm -rf .git
-rm init.sh
-
 git init
-# add allolib as a submodule
-git submodule add https://github.com/AlloSphere-Research-Group/allolib.git
-git submodule add https://github.com/AlloSphere-Research-Group/al_ext.git
 
-git submodule update --recursive --init --depth=50
+# add allolib and al_ext as submodules
+git submodule add -b devel https://github.com/AlloSphere-Research-Group/allolib.git
+git submodule add -b devel https://github.com/AlloSphere-Research-Group/al_ext.git
+
+# update submodules with blobs omitted
+git submodule update --recursive --init --filter=blob:none
