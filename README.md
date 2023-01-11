@@ -1,39 +1,32 @@
 # allotemplate
-Template repository for applications using allolib.
-This template is suitable for large projects wil multiple files and dependencies where you need more control. If you are prototyping single files or want to explore the allolib examples, use the [allolib_playground repo](https://github.com/AlloSphere-Research-Group/allolib_playground).
+Template repository for projects using allolib.
+Contains [allolib](https://github.com/AlloSphere-Research-Group/allolib) and [al_ext](https://github.com/AlloSphere-Research-Group/al_ext) as submodules.
+
+This template is suitable for large projects wil multiple files and dependencies where you need more control.
+
+If you are prototyping single files or want to explore the allolib examples, use the [allolib_playground repo](https://github.com/AlloSphere-Research-Group/allolib_playground).
 
 Developed by:
-
 AlloSphere Research Group
-
 University of California, Santa Barbara
 
 # Installation
-Allotemplate currently requires:
- * bash shell
- * git
- * cmake version 3.0 or higher
+## Creating a github repository from template
+Use https://github.com/AlloSphere-Research-Group/allotemplate/generate
 
-## Using `alloinit`
-The [`alloinit`](utils/alloinit.md) one-step project initializer can be used to
-initialize a new alloinit project as follows:
-
-```sh
-curl -L https://github.com/Allosphere-Research-Group/allotemplate/raw/master/utils/alloinit \
-    | bash -s proj  # Download `alloinit` and initialize an `allotemplate` project in `proj/`.
-cd proj             # A copy of `alloinit` is now in `proj/utils`.
-./run.sh            # Run your new project!
-```
+or from https://github.com/AlloSphere-Research-Group/allotemplate,
+click on 'Use this template' then 'Create a new repository'.
 
 ## Manually creating a new project based on allotemplate
 On a bash shell:
 
-    git clone https://github.com/AlloSphere-Research-Group/allotemplate.git <project folder name>
+    git clone --filter=blob:none --recurse-submodules --also-filter-submodules https://github.com/AlloSphere-Research-Group/allotemplate.git <project folder name>
     cd <project folder name>
-    ./init.sh
+    rm -rf .git
+    git init
+    git remote set-url origin <URL to new repo>
 
-This will prepare the project as a fresh git repository and will add allolib and al_ext as submodules.
-
+# Building your project
 ## How to compile / run
 The src/ folder contains the initial main.cpp starter code.
 
@@ -55,5 +48,10 @@ If you need to delete the build,
 
 should recursively clean all the build directories of the project including those of allolib and its submodules.
 
-# remove existing git data
-rm -rf .git
+## Keeping your project up to date
+Run
+    ./update.sh
+
+or manually run following from a bash shell:
+    git pull
+    git submodule update --recursive --init --filter=blob:none
