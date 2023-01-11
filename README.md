@@ -37,7 +37,7 @@ On a bash shell you can run:
 
 This will configure and compile the project, and run the binary if compilation is successful.
 
-Alternatively, you can open the CMakeLists.txt proeject in an IDE like VS Code, Visual Studio or Qt Creator and have the IDE manage the configuration and execution of cmake.
+Alternatively, you can open the CMakeLists.txt project in an IDE like VS Code, Visual Studio or Qt Creator and have the IDE manage the configuration and execution of cmake.
 
 You can also generate other IDE projects through cmake.
 
@@ -50,8 +50,10 @@ should recursively clean all the build directories of the project including thos
 
 ## Keeping your project up to date
 Run
+
     ./update.sh
 
 or manually run following from a bash shell:
+
     git pull
     git submodule update --recursive --init --filter=blob:none
