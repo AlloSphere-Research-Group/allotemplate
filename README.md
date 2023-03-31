@@ -22,12 +22,10 @@ On a bash shell:
 
     git clone https://github.com/AlloSphere-Research-Group/allotemplate.git <project folder name>
     cd <project folder name>
-    rm -rf .git
-    git init
-    git submodule add https://github.com/AlloSphere-Research-Group/allolib.git
-    git submodule add https://github.com/AlloSphere-Research-Group/al_ext.git
-    git submodule update --recursive --init
+    ./init.sh
     git remote set-url origin <URL to new repo>
+
+init.sh will set the folder as a brand new git repository, re-add the submodules into the index, and delete itself.
 
 # Building your project
 ## How to compile / run
