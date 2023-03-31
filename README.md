@@ -24,6 +24,8 @@ On a bash shell:
     cd <project folder name>
     rm -rf .git
     git init
+    git submodule add https://github.com/AlloSphere-Research-Group/allolib.git
+    git submodule add https://github.com/AlloSphere-Research-Group/al_ext.git
     git submodule update --recursive --init
     git remote set-url origin <URL to new repo>
 
