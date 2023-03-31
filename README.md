@@ -20,10 +20,11 @@ click on 'Use this template' then 'Create a new repository'.
 ## Manually creating a new project based on allotemplate
 On a bash shell:
 
-    git clone --filter=blob:none --recurse-submodules --also-filter-submodules https://github.com/AlloSphere-Research-Group/allotemplate.git <project folder name>
+    git clone https://github.com/AlloSphere-Research-Group/allotemplate.git <project folder name>
     cd <project folder name>
     rm -rf .git
     git init
+    git submodule update --recursive --init
     git remote set-url origin <URL to new repo>
 
 # Building your project
@@ -56,4 +57,4 @@ Run
 or manually run following from a bash shell:
 
     git pull
-    git submodule update --recursive --init --filter=blob:none
+    git submodule update --recursive --init
