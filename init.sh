@@ -10,6 +10,6 @@ rmdir al_ext
 git submodule add -b devel https://github.com/AlloSphere-Research-Group/allolib.git
 git submodule add -b devel https://github.com/AlloSphere-Research-Group/al_ext.git
 
-git submodule update --recursive --init
+git submodule update --recursive --init --filter=blob:none
 
 rm init.sh
