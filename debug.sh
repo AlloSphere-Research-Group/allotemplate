@@ -2,10 +2,8 @@
 
 # Configure debug build
 (
-  mkdir -p build
-  cd build
-  mkdir -p debug
-  cd debug
+  mkdir -p build/debug
+  cd build/debug
   cmake -DCMAKE_BUILD_TYPE=Debug -Wno-deprecated -DBUILD_EXAMPLES=0 ../..
 )
 
