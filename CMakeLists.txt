@@ -3,12 +3,19 @@ cmake_minimum_required(VERSION 3.29)
 project(project_name_here)
 set(APP_NAME app_name_here)
 
+# cmake scripts are kept in the cmake directory
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 # disable in-source builds
 include(NoInSourceBuilds)
 # enable interprocedural optimization if possible
 include(SetIPO)
+
+# set compiler/platform specific flags
+# if(MSVC)
+#   add_compile_options(/utf-8)
+#   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:4194304")
+# endif()
 
 # add source files to executable
 add_executable(${APP_NAME} src/main.cpp)
@@ -30,11 +37,6 @@ endif()
 # example of linking other libraries
 # target_include_directories(${APP_NAME} PRIVATE ${PATH_TO_INCLUDE_DIR})
 # target_link_libraries(${APP_NAME} PRIVATE ${PATH_TO_LIB_FILE})
-
-# increasing stack memory on windows if necessary
-# if(MSVC)
-#   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:4194304")
-# endif()
 
 # binaries are put into the ./bin directory by default
 set_target_properties(${APP_NAME} PROPERTIES
