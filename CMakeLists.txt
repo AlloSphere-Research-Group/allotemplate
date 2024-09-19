@@ -12,10 +12,11 @@ include(NoInSourceBuilds)
 include(SetIPO)
 
 # set compiler/platform specific flags
-# if(MSVC)
-#   add_compile_options(/utf-8)
-#   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:4194304")
-# endif()
+if(MSVC)
+  set(CMAKE_BUILD_PARALLEL_LEVEL $ENV{NUMBER_OF_PROCESSORS})
+  # add_compile_options(/utf-8)
+  # set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:4194304")
+endif()
 
 # add source files to executable
 add_executable(${APP_NAME} src/main.cpp)
