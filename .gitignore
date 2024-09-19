@@ -1,6 +1,8 @@
 # anything named bin or build
 bin
 build
+data
+.vscode
 
 # ignore potentially big files
 *.log
