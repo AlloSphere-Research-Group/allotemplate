@@ -1,8 +1,12 @@
-# anything named bin or build
+# directories to ignore
 bin
 build
 data
+presets
 .vscode
+
+# configuration files
+imgui.ini
 
 # ignore potentially big files
 *.log
