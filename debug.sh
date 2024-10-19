@@ -2,16 +2,15 @@
 
 # Configure debug build
 (
-  mkdir -p build/debug
-  cd build/debug
-  cmake -DCMAKE_BUILD_TYPE=Debug -Wno-deprecated -DBUILD_EXAMPLES=0 ../..
+  mkdir -p build/Debug
+  cmake -DCMAKE_BUILD_TYPE=Debug -Wno-deprecated -DBUILD_EXAMPLES=0 -B build/Debug -S .
 )
 
 (
   # utilizing cmake's parallel build options
   # for cmake >= 3.12: -j <number of processor cores + 1>
   # for older cmake: -- -j5
-  cmake --build build/debug -j 9
+  cmake --build build/Debug -j 9
 )
 
 result=$?
