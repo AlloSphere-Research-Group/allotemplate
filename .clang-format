@@ -1,0 +1,6 @@
+BasedOnStyle: Google
+AlignArrayOfStructures: Right
+AlignConsecutiveBitFields: AcrossComments
+AlignConsecutiveMacros: AcrossComments
+DerivePointerAlignment: false
+Standard: Latest
