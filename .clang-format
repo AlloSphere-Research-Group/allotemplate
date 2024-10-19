@@ -2,5 +2,6 @@ BasedOnStyle: Google
 AlignArrayOfStructures: Right
 AlignConsecutiveBitFields: AcrossComments
 AlignConsecutiveMacros: AcrossComments
+BreakBeforeBraces: Stroustrup
 DerivePointerAlignment: false
 Standard: Latest
